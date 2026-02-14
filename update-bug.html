@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>FixFlow - Update Bug</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <div class="topbar">
+    <a class="brand" href="home.html">
+      <img class="brand-logo" src="logo.png" alt="FixFlow logo">
+      <span class="brand-text">FixFlow</span>
+    </a>
+
+    <a class="user-pill" href="profile.html">
+      <div class="user-avatar"></div>
+      <div>Sanjay</div>
+      <div class="caret">▼</div>
+    </a>
+  </div>
+
+  <div class="container">
+    <div class="h1">Update Bug</div>
+    <p class="sub">Please fill out the following to update bug information</p>
+
+    <div class="card section" style="padding:26px;">
+      <div style="font-weight:900; font-size:26px; margin-bottom:14px;">Bug ID: Bug-102</div>
+
+      <div style="font-style:italic; font-weight:900; margin:18px 0 6px;">Bug Title:</div>
+      <div style="margin-bottom:28px;">Login button not working</div>
+
+      <div style="font-style:italic; font-weight:900; margin:18px 0 8px;">Update Due Date</div>
+      <select class="input" style="border-radius:6px;">
+        <option>Select due date</option>
+        <option>Feb 13 2026</option>
+        <option>Feb 15 2026</option>
+        <option>Feb 16 2026</option>
+      </select>
+
+      <div style="font-style:italic; font-weight:900; margin:18px 0 8px;">Update Status</div>
+      <select class="input" style="border-radius:6px;">
+        <option>InProgress/Open/Resolved/Closed</option>
+        <option>In progress</option>
+        <option>Open</option>
+        <option>Resolved</option>
+        <option>Closed</option>
+      </select>
+
+      <div class="row" style="gap:22px; margin-top:18px; align-items:flex-end;">
+        <div class="col">
+          <div style="font-style:italic; font-weight:900; margin:0 0 8px;">Update Assigned User</div>
+          <select class="input" style="border-radius:6px; max-width:260px;">
+            <option>Select User</option>
+            <option>user1</option>
+            <option>user2</option>
+            <option>user3</option>
+          </select>
+        </div>
+
+        <div class="col">
+          <div style="font-style:italic; font-weight:900; margin:0 0 8px;">Update Priority</div>
+          <select class="input" style="border-radius:6px; max-width:260px;">
+            <option>Low/Medium/High</option>
+            <option>Low</option>
+            <option>Medium</option>
+            <option>High</option>
+          </select>
+        </div>
+
+        <div style="width:260px; display:flex; flex-direction:column; gap:12px;">
+          <a class="btn-blue" href="bug-updated.html">Update Bug</a>
+          <a class="btn-blue secondary" href="browse.html">Cancel</a>
+        </div>
+      </div>
+
+      <div style="margin-top:26px;">
+        <a href="delete-bug.html" class="danger-link">Delete Bug</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
