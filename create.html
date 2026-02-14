@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>FixFlow - Create Bug</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <div class="topbar">
+    <a class="brand" href="home.html" style="text-decoration:none; color:#111;">
+      <img class="brand-logo" src="logo.png" alt="FixFlow logo" style="width:34px; height:34px; object-fit:contain;">
+      <span class="brand-text" style="font-weight:800; font-size:28px;">FixFlow</span>
+    </a>
+
+    <a class="user-pill" href="profile.html">
+      <div class="user-avatar"></div>
+      <div>Sanjay</div>
+      <div class="caret">▼</div>
+    </a>
+  </div>
+
+  <div class="container">
+    <a class="back" href="home.html">← Back</a>
+    <div class="h1">Create Bug</div>
+    <p class="sub">Please fill out the following details to report an issue.</p>
+
+    <div class="card section">
+      <div style="font-weight:900; margin-bottom:14px;">Bug Details</div>
+
+      <div style="font-weight:800; font-style:italic; margin-bottom:6px;">Bug Title *</div>
+      <input class="input" style="border-radius:6px;" placeholder="Enter a brief description about the bug"/>
+
+      <div style="height:12px;"></div>
+
+      <div style="font-weight:800; font-style:italic; margin-bottom:6px;">Bug Description *</div>
+      <textarea class="input" style="border-radius:6px; height:110px;" placeholder="Explain the issue/bug in detail"></textarea>
+
+      <div style="height:12px;"></div>
+
+      <div class="row" style="align-items:flex-start;">
+        <div class="col">
+          <div style="font-weight:800; font-style:italic; margin-bottom:6px;">Priority *</div>
+          <select class="input" style="border-radius:6px;">
+            <option>High/Medium/Low</option>
+            <option>High</option><option>Medium</option><option>Low</option>
+          </select>
+
+          <div style="height:12px;"></div>
+
+          <div style="font-weight:800; font-style:italic; margin-bottom:6px;">Assign To *</div>
+          <select class="input" style="border-radius:6px;">
+            <option>Select User</option>
+            <option>user1</option><option>user2</option><option>user3</option>
+          </select>
+        </div>
+
+        <div class="col">
+          <div style="font-weight:800; font-style:italic; margin-bottom:6px;">Add files</div>
+          <div class="card" style="padding:10px; min-height:120px;">
+            <div style="color:var(--muted); font-size:13px;">
+              Add any additional files/pictures to help us better understand the issue.
+            </div>
+          </div>
+        </div>
+
+        <div style="width:200px; display:flex; flex-direction:column; gap:10px;">
+          <a class="btn small" href="create-success.html" style="text-align:center;">Submit form</a>
+          <a class="btn small" href="home.html" style="text-align:center; opacity:.85;">Cancel form</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
