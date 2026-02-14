@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>FixFlow - Delete Bug</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <div class="topbar">
+    <a class="brand" href="home.html">
+      <img class="brand-logo" src="logo.png" alt="FixFlow logo">
+      <span class="brand-text">FixFlow</span>
+    </a>
+    <a class="user-pill" href="profile.html">
+      <div class="user-avatar"></div>
+      <div>Sanjay</div>
+      <div class="caret">▼</div>
+    </a>
+  </div>
+
+  <div class="container">
+    <div class="h1">Delete Bug</div>
+    <p class="sub">Please fill out the following to delete a bug</p>
+
+    <div class="card section" style="padding:26px;">
+      <div style="font-weight:900; font-size:28px; margin-bottom:18px;">Bug ID: Bug-102</div>
+
+      <div style="font-style:italic; font-weight:900; margin:10px 0 6px;">Bug Title:</div>
+      <div style="margin-bottom:18px; font-size:22px;">Login button not working</div>
+
+      <div style="font-style:italic; font-weight:900; margin:18px 0 8px;">
+        Please provide a reason for deleting this bug:
+      </div>
+      <textarea class="input" style="border-radius:6px; height:120px;" placeholder="Enter explanation here"></textarea>
+
+      <div style="display:flex; align-items:center; gap:12px; margin-top:18px;">
+        <input type="checkbox" style="width:22px; height:22px;">
+        <div style="font-style:italic; font-weight:900; font-size:20px;">
+          I understand that all information about this bug will be erased from the system once deleted.
+        </div>
+      </div>
+
+      <div style="display:flex; gap:26px; justify-content:center; margin-top:34px;">
+        <a class="btn-danger" href="bug-deleted.html">Delete Bug</a>
+        <a class="btn-danger" href="update-bug.html">Cancel</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
