@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>FixFlow - Browse Bugs</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <div class="topbar">
+    <a class="brand" href="home.html" style="text-decoration:none; color:#111;">
+      <img src="logo.png" alt="FixFlow logo"
+           style="width:34px; height:34px; object-fit:contain;">
+      <span style="font-weight:800; font-size:28px;">FixFlow</span>
+    </a>
+  
+    <a class="user-pill" href="profile.html">
+      <div class="user-avatar"></div>
+      <div>Sanjay</div>
+      <div class="caret">▼</div>
+    </a>
+  </div>
+  
+
+  <div class="container">
+    <a class="back" href="home.html">← Back</a>
+
+    <div class="h1">Browse Bugs</div>
+    <p class="sub">Browse all reported bugs and select issues to work on next.</p>
+
+    <div class="filters">
+      <div>Status: <select class="select"><option>All</option><option>Open</option><option>In progress</option><option>Resolved</option></select></div>
+      <div>Priority: <select class="select"><option>All</option><option>High</option><option>Medium</option><option>Low</option></select></div>
+      <div>User: <select class="select"><option>Anyone</option><option>user1</option><option>user2</option><option>user3</option></select></div>
+      <div>Sort by: <select class="select"><option>Newest</option><option>Oldest</option></select></div>
+    </div>
+
+    <div style="height:14px;"></div>
+
+    <div class="row">
+      <div class="col card">
+        <div class="section row" style="align-items:center; justify-content:space-between;">
+          <div style="font-weight:900;">Browse & Select Bugs</div>
+          <div class="btn small" style="pointer-events:none;">Selected bug: Bug - 79</div>
+        </div>
+        <div class="hr"></div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Bug Details</th>
+                <th>Current Status</th>
+                <th>Assigned User</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="row-red">
+                <td><span class="badge red"></span> &nbsp;Login button not working<br/>Bug-102</td>
+                <td>In progress</td>
+                <td><span class="user-avatar" style="display:inline-block;vertical-align:middle;"></span> &nbsp;user1</td>
+              </tr>
+              <tr class="row-orange" style="outline:2px solid #2b2b2b55;">
+                <td><span class="badge orange"></span> &nbsp;User unable to reset password<br/>Bug-79</td>
+                <td>Open</td>
+                <td><span class="user-avatar" style="display:inline-block;vertical-align:middle;"></span> &nbsp;user2</td>
+              </tr>
+              <tr class="row-green">
+                <td><span class="badge red"></span> &nbsp;App crashes when uploading large files<br/>Bug-83</td>
+                <td>In progress</td>
+                <td><span class="user-avatar" style="display:inline-block;vertical-align:middle;"></span> &nbsp;user3</td>
+              </tr>
+              <tr class="row-green">
+                <td colspan="3" style="padding:10px;background:#d9f6d6;"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="right card">
+        <div class="section">
+          <div class="actions-title">Actions: (Selected Bug)</div>
+          <div class="stack">
+            <a class="btn" href="update-bug.html">✏️ Update status</a>
+            <a class="btn" href="bug-overview.html">👁 View details</a>
+          
+          </div>
+
+          <div style="height:14px;"></div>
+          <div class="actions-title">Other Actions:</div>
+          <div class="stack">
+            <a class="btn" href="create.html">＋ Create new bug</a>
+            <a class="btn" href="assigned.html">👤 Assigned bugs</a>
+            <a class="btn" href="browse.html">🕷 Browse all bugs</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

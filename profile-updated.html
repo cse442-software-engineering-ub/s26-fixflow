@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>FixFlow - Profile Updated</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <a class="brand" href="home.html">
+      <img class="brand-logo" src="logo.png" alt="FixFlow logo">
+      <span class="brand-text">FixFlow</span>
+    </a>
+
+    <div class="user-pill" style="cursor:default;">
+      <div class="user-avatar"></div>
+      <div id="topbarName">Sanjay</div>
+      <div class="caret">▼</div>
+    </div>
+  </div>
+
+  <div class="container" style="padding-top:70px;">
+
+    <!-- big centered confirmation box -->
+    <div style="
+      max-width:860px;
+      margin:0 auto;
+      background:#f4f4f4;
+      border-radius:14px;
+      padding:70px 24px;
+      text-align:center;
+    ">
+
+      <div style="
+        background:#fff;
+        border:1px solid #e6e6e6;
+        border-radius:14px;
+        padding:60px 20px;
+        box-shadow:0 10px 26px rgba(0,0,0,.08);
+      ">
+        <div style="font-weight:900; font-size:28px; display:inline-block;">
+          User Profile Has Been Updated Successfully!
+          <span class="check">✅</span>
+        </div>
+
+        <div style="height:16px;"></div>
+
+        <a class="back" href="home.html" style="justify-content:center;">
+          ← Go Back To Homepage
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // keep topbar name consistent (frontend demo)
+    const savedName = localStorage.getItem("fixflow_username");
+    if (savedName && savedName.trim()) {
+      document.getElementById("topbarName").textContent = savedName;
+    }
+  </script>
+
+</body>
+</html>
