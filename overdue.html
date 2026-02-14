@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>FixFlow - Overdue Bugs</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <div class="topbar">
+    <a class="brand" href="home.html" style="text-decoration:none; color:#111;">
+      <img src="logo.png" alt="FixFlow logo"
+           style="width:34px; height:34px; object-fit:contain;">
+      <span style="font-weight:800; font-size:28px;">FixFlow</span>
+    </a>
+  
+    <a class="user-pill" href="profile.html">
+      <div class="user-avatar"></div>
+      <div>Sanjay</div>
+      <div class="caret">▼</div>
+    </a>
+  </div>
+  
+
+  <div class="container">
+    <a class="back" href="home.html">← Back</a>
+
+    <div class="h1">Overdue Bugs</div>
+    <p class="sub">Here is a list of all the overdue bugs</p>
+
+    <div class="card section" style="margin-bottom:14px;">
+      <div class="row" style="align-items:center; justify-content:space-between;">
+        <div style="font-weight:900; color:#d00000;">TOTAL NUMBER OF OVERDUE BUGS: 4</div>
+        <div style="font-weight:800;">Sort by: <span style="margin-left:8px;">Newest</span> <span class="caret">▼</span></div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col card">
+        <div class="section row" style="align-items:center; justify-content:space-between;">
+          <div style="font-weight:900;">Overdue Bugs</div>
+          <div class="btn small" style="pointer-events:none;">Selected bug: Bug - 74</div>
+        </div>
+        <div class="hr"></div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Bug Details</th>
+                <th>Current Status</th>
+                <th>Due Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="row-green">
+                <td><span class="badge green"></span> &nbsp;Username not found<br/>Bug-77</td>
+                <td>Open</td>
+                <td>Feb 5 2026</td>
+              </tr>
+              <tr class="row-orange">
+                <td><span class="badge orange"></span> &nbsp;User unable to reset password<br/>Bug-74</td>
+                <td>Open</td>
+                <td>Feb 5 2026</td>
+              </tr>
+              <tr class="row-green">
+                <td><span class="badge green"></span> &nbsp;Username not found<br/>Bug-65</td>
+                <td>Open</td>
+                <td>Feb 2 2026</td>
+              </tr>
+              <tr class="row-green">
+                <td><span class="badge green"></span> &nbsp;Username not found<br/>Bug-82</td>
+                <td>Open</td>
+                <td>Feb 7 2026</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="right card">
+        <div class="section">
+          <div class="actions-title">Actions: (Selected Bug)</div>
+          <div class="stack">
+            <a class="btn" href="update-bug.html">✏️ Update status</a>
+            <a class="btn" href="bug-overview.html">👁 View details</a>
+
+          </div>
+
+          <div style="height:14px;"></div>
+
+          <div class="actions-title">Other Actions:</div>
+          <div class="stack">
+            <a class="btn" href="create.html">＋ Create new bug</a>
+            <a class="btn" href="browse.html">🕷 Browse all bugs</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
