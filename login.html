@@ -53,4 +53,35 @@
     </div>
   </div>
 </body>
+
+<script>
+  document.querySelector(".helper-link[href='home.html']")
+    .addEventListener("click", async function (e) {
+      e.preventDefault();
+  
+      const username = document.querySelector("input[type='text']").value.trim();
+      const password = document.querySelector("input[type='password']").value.trim();
+  
+      if (!username || !password) {
+        alert("Please fill in all fields.");
+        return;
+      }
+  
+      const res = await fetch("login.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+  
+      const data = await res.json();
+  
+      if (data.success) {
+        window.location.href = "home.html";
+      } else {
+        alert(data.message);
+      }
+    });
+  </script>
 </html>
+  
+
