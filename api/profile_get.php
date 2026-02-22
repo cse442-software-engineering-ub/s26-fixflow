@@ -13,12 +13,10 @@ if (!isset($_SESSION["user_id"]) || !is_numeric($_SESSION["user_id"])) {
 
 $userId = (int)$_SESSION["user_id"];
 
-// Get user profile
-$stmt = $conn->prepare("SELECT id, username, email FROM users WHERE id = ?");
-$stmt->bind_param("i", $userId);
-$stmt->execute();
-$result = $stmt->get_result();
-$user = $result->fetch_assoc();
+// Get user profile (PDO; users table: id, full_name, email, username, password_hash [+ optional phone, about_me])
+$stmt = $pdo->prepare("SELECT id, full_name, email, username FROM users WHERE id = ?");
+$stmt->execute([$userId]);
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$user) {
     http_response_code(404);
@@ -26,15 +24,20 @@ if (!$user) {
     exit;
 }
 
-// Get assigned bugs
-$stmt2 = $conn->prepare("SELECT id, title, status, priority FROM bugs WHERE assigned_to = ?");
-$stmt2->bind_param("i", $userId);
-$stmt2->execute();
-$result2 = $stmt2->get_result();
+// Task card expects "name" in response; expose as both name and full_name
+$user["name"] = $user["full_name"] ?? "";
 
-$bugs = [];
-while ($row = $result2->fetch_assoc()) {
-    $bugs[] = $row;
+// Optional profile fields (add to users table if needed: phone VARCHAR(32), about_me TEXT)
+$user["phone"] = $user["phone"] ?? "";
+$user["about_me"] = $user["about_me"] ?? "";
+
+// Get assigned bugs (bugs table may use assigned_to as user id)
+try {
+    $stmtBugs = $pdo->prepare("SELECT id, title, status, priority FROM bugs WHERE assigned_to = ?");
+    $stmtBugs->execute([$userId]);
+    $bugs = $stmtBugs->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    $bugs = [];
 }
 
 echo json_encode([

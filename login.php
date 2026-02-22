@@ -1,7 +1,9 @@
 <?php
+session_start();
 header("Content-Type: application/json");
 
-require "db-conection.php";
+#require "db-conection.php";
+require_once(__DIR__ . "/db-connection.php");
 
 $data = json_decode(file_get_contents("php://input"), true);
 
@@ -13,14 +15,17 @@ if (!$username || !$password) {
     exit;
 }
 
-$stmt = $pdo->prepare("SELECT password_hash FROM users WHERE username = ?");
+$stmt = $pdo->prepare("SELECT id, password_hash FROM users WHERE username = ?");
 $stmt->execute([$username]);
-$user = $stmt->fetch();
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$user || !password_verify($password, $user["password_hash"])) {
     echo json_encode(["success" => false, "message" => "Invalid credentials"]);
     exit;
 }
+
+$_SESSION["user_id"] = (int)$user["id"];
+$_SESSION["username"] = $username;
 
 echo json_encode(["success" => true]);
 
