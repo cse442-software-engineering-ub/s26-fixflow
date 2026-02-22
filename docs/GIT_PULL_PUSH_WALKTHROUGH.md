@@ -28,7 +28,7 @@ If the branch doesn't exist on GitHub yet, that's fine — skip to Step 2.
 
 Stage the profile backend files (leave out `.DS_Store`):
 ```bash
-git add api/profile_get.php api/profile_update.php login.php profile.html docs/
+git add profile_get.php profile_update.php login.php profile.html docs/
 ```
 
 Check what's staged:
@@ -73,7 +73,7 @@ git fetch origin
 git merge origin/dev
 
 # 2. Stage, commit, push only your branch
-git add api/profile_get.php api/profile_update.php login.php profile.html docs/
+git add profile_get.php profile_update.php login.php profile.html docs/
 git status
 git commit -m "Implement profile page backend: profile_get (PDO), profile_update, session on login, wire profile.html, add docs"
 git push -u origin 28-profile-page-backend

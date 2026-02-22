@@ -17,8 +17,8 @@
 
 | Deliverable | Status | Notes |
 |------------|--------|--------|
-| `api/profile_get.php` | ✅ | Uses PDO, returns `user` (id, full_name, email, username) and `assignedBugs`. 401 if not logged in. |
-| `api/profile_update.php` | ✅ | POST/PUT/PATCH; updates full_name, email, username; validates email and unique username. |
+| `profile_get.php` | ✅ | Uses PDO, returns `user` (id, full_name, email, username) and `assignedBugs`. 401 if not logged in. |
+| `profile_update.php` | ✅ | POST/PUT/PATCH; updates full_name, email, username; validates email and unique username. |
 | Session on login | ✅ | `login.php` sets `$_SESSION["user_id"]` and `$_SESSION["username"]` after successful login. |
 
 ---
@@ -26,14 +26,14 @@
 ## How to test (manual)
 
 1. **Session required**
-   - Call `GET api/profile_get.php` without logging in → expect **401** and `{"error":"Unauthorized"}`.
+   - Call `GET profile_get.php` without logging in → expect **401** and `{"error":"Unauthorized"}`.
 2. **Get profile**
    - Log in via `login.html` (POST to `login.php`).
-   - Open `profile.html` (or call `GET api/profile_get.php` with same browser/session).  
+   - Open `profile.html` (or call `GET profile_get.php` with same browser/session).  
    - Expect **200** and JSON with `user` (full_name, email, username) and `assignedBugs`.
 3. **Update profile**
    - From profile page, change name/email/username and click “Update User Profile”.  
-   - Expect POST to `api/profile_update.php` → **200** and `{"success":true}`.  
+   - Expect POST to `profile_update.php` → **200** and `{"success":true}`.  
    - Reload profile → changes are persisted.
 4. **Validation**
    - Update with invalid email → expect **200** with `{"success":false,"message":"Invalid email address"}`.
@@ -51,7 +51,7 @@
 
 ## Files touched
 
-- `api/profile_get.php` — fixed to use PDO and session.
-- `api/profile_update.php` — new; profile update endpoint.
+- `profile_get.php` — fixed to use PDO and session (in project root).
+- `profile_update.php` — new; profile update endpoint (in project root).
 - `login.php` — session set on successful login.
 - `profile.html` — loads profile from API, submits updates to API.

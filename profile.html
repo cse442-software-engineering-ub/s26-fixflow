@@ -109,7 +109,7 @@
     // Load profile from backend (requires same-origin + session cookie)
     async function loadProfile() {
       try {
-        const res = await fetch("api/profile_get.php", { credentials: "include" });
+        const res = await fetch("profile_get.php", { credentials: "include" });
         if (res.status === 401) {
           window.location.href = "login.html";
           return;
@@ -156,7 +156,7 @@
         about_me: aboutInput.value.trim()
       };
       try {
-        const res = await fetch("api/profile_update.php", {
+        const res = await fetch("profile_update.php", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
