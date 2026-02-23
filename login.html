@@ -6,7 +6,6 @@
   <title>FixFlow - Login</title>
   <link rel="stylesheet" href="styles.css"/>
 </head>
-
 <body>
   <div class="auth-wrap">
     <div style="width:100%; max-width:520px;">
@@ -22,20 +21,20 @@
         <div class="auth-title">LOGIN</div>
 
         <div style="display:flex; flex-direction:column; gap:16px;">
-
           <div class="field">
             <label>Username</label>
-            <input id="username" class="input" type="text" placeholder="Enter Username">
+            <input id="username" class="input" type="text" placeholder="Enter Username" autocomplete="username">
           </div>
 
           <div class="field">
             <label>Password</label>
-            <input id="password" class="input" type="password" placeholder="Enter Password">
+            <input id="password" class="input" type="password" placeholder="Enter Password" autocomplete="current-password">
           </div>
 
           <!-- Continue -->
           <div style="display:flex; justify-content:center; margin-top:6px;">
-            <button id="loginBtn" class="helper-link" style="font-size:18px; background:none; border:none; cursor:pointer;">
+            <button id="loginBtn" class="helper-link"
+              style="font-size:18px; background:none; border:none; cursor:pointer;">
               Continue
             </button>
           </div>
@@ -49,7 +48,6 @@
           <div style="display:flex; justify-content:flex-start; margin-top:10px;">
             <a class="helper-link" href="reset.html">Forgot Password? →</a>
           </div>
-
         </div>
       </div>
 
@@ -57,8 +55,7 @@
   </div>
 
   <script>
-    document.getElementById("loginBtn").addEventListener("click", async function () {
-
+    async function doLogin() {
       const username = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value.trim();
 
@@ -71,25 +68,29 @@
         const res = await fetch("login.php", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include", // ensures PHP session cookie is stored
+          credentials: "include",
           body: JSON.stringify({ username, password })
         });
 
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
 
         if (data.success) {
           window.location.href = "home.html";
         } else {
           alert(data.message || "Invalid credentials.");
         }
-
       } catch (err) {
         console.error("Login error:", err);
         alert("Something went wrong. Please try again.");
       }
+    }
 
+    document.getElementById("loginBtn").addEventListener("click", doLogin);
+
+    // Optional: Enter key to login
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") doLogin();
     });
   </script>
-
 </body>
 </html>

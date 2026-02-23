@@ -113,11 +113,7 @@
           window.location.href = "login.html";
           return;
         }
-
-        if (!res.ok) {
-          console.error("Profile fetch failed:", res.status);
-          return;
-        }
+        if (!res.ok) return;
 
         const data = await res.json();
         const u = data.user || {};
@@ -128,9 +124,8 @@
 
         if (welcomeEl) welcomeEl.textContent = name;
         if (topbarEl)  topbarEl.textContent = name;
-
       } catch (err) {
-        console.error("Error loading profile:", err);
+        // keep default "User"
       }
     }
 
