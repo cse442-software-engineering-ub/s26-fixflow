@@ -52,36 +52,38 @@
 
     </div>
   </div>
-</body>
 
-<script>
-  document.querySelector(".helper-link[href='home.html']")
-    .addEventListener("click", async function (e) {
-      e.preventDefault();
-  
-      const username = document.querySelector("input[type='text']").value.trim();
-      const password = document.querySelector("input[type='password']").value.trim();
-  
-      if (!username || !password) {
-        alert("Please fill in all fields.");
-        return;
-      }
-  
-      const res = await fetch("login.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
+  <script>
+    document.querySelector(".helper-link[href='home.html']")
+      .addEventListener("click", async function (e) {
+        e.preventDefault();
+
+        const username = document.querySelector("input[type='text']").value.trim();
+        const password = document.querySelector("input[type='password']").value.trim();
+
+        if (!username || !password) {
+          alert("Please fill in all fields.");
+          return;
+        }
+
+        const res = await fetch("login.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include", // ✅ IMPORTANT: saves/sends PHP session cookie
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          window.location.href = "home.html";
+        } else {
+          alert(data.message);
+        }
       });
-  
-      const data = await res.json();
-  
-      if (data.success) {
-        window.location.href = "home.html";
-      } else {
-        alert(data.message);
-      }
-    });
   </script>
+</body>
+<div style="position:fixed;bottom:8px;right:8px;background:#ff0;padding:6px 10px;border:1px solid #000;font-weight:900;z-index:9999;">
+  HOME UPDATED ✅
+</div>
 </html>
-  
-

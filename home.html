@@ -5,22 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>FixFlow - Home</title>
   <link rel="stylesheet" href="styles.css"/>
+
+  <!-- Prevent browser caching -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
 </head>
 <body>
   <div class="topbar">
     <a class="brand" href="home.html">
       <img class="brand-logo" src="logo.png" alt="FixFlow logo">
       <span class="brand-text">FixFlow</span>
-    </a>    
+    </a>
+
     <a class="user-pill" href="profile.html">
       <div class="user-avatar"></div>
-      <div>Sanjay</div>
+      <div id="topbarName">User</div>
       <div class="caret">▼</div>
     </a>
   </div>
 
   <div class="container">
-    <div class="h1">Welcome, Sanjay !</div>
+    <div class="h1">Welcome, <span id="welcomeName">User</span>!</div>
     <p class="sub">Here’s an overview of the system health.</p>
 
     <div class="card status-wrap">
@@ -84,17 +90,51 @@
         <div class="section">
           <div class="actions-title">Actions:</div>
           <div class="stack">
-
             <a class="btn" href="create.html">＋ Create new bug</a>
             <a class="btn" href="browse.html">🕷 Browse all bugs</a>
             <a class="btn" href="assigned.html">👤 Assigned bugs</a>
             <a class="btn" href="overdue.html">！ Overdue bugs</a>
             <a class="btn" href="bug-history.html">🗓️ Bug history</a>
-
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <script>
+    async function loadUserName() {
+      try {
+        const res = await fetch("profile_get.php", {
+          credentials: "include",
+          cache: "no-store"
+        });
+
+        if (res.status === 401) {
+          window.location.href = "login.html";
+          return;
+        }
+
+        if (!res.ok) {
+          console.error("Profile fetch failed:", res.status);
+          return;
+        }
+
+        const data = await res.json();
+        const u = data.user || {};
+        const name = u.full_name || u.username || "User";
+
+        const welcomeEl = document.getElementById("welcomeName");
+        const topbarEl  = document.getElementById("topbarName");
+
+        if (welcomeEl) welcomeEl.textContent = name;
+        if (topbarEl)  topbarEl.textContent = name;
+
+      } catch (err) {
+        console.error("Error loading profile:", err);
+      }
+    }
+
+    loadUserName();
+  </script>
 </body>
 </html>
