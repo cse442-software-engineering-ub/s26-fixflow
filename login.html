@@ -6,6 +6,7 @@
   <title>FixFlow - Login</title>
   <link rel="stylesheet" href="styles.css"/>
 </head>
+
 <body>
   <div class="auth-wrap">
     <div style="width:100%; max-width:520px;">
@@ -24,17 +25,19 @@
 
           <div class="field">
             <label>Username</label>
-            <input class="input" type="text" placeholder="Enter Username">
+            <input id="username" class="input" type="text" placeholder="Enter Username">
           </div>
 
           <div class="field">
             <label>Password</label>
-            <input class="input" type="password" placeholder="Enter Password">
+            <input id="password" class="input" type="password" placeholder="Enter Password">
           </div>
 
           <!-- Continue -->
           <div style="display:flex; justify-content:center; margin-top:6px;">
-            <a class="helper-link" href="home.html" style="font-size:18px;">Continue</a>
+            <button id="loginBtn" class="helper-link" style="font-size:18px; background:none; border:none; cursor:pointer;">
+              Continue
+            </button>
           </div>
 
           <!-- Sign Up -->
@@ -54,22 +57,21 @@
   </div>
 
   <script>
-    document.querySelector(".helper-link[href='home.html']")
-      .addEventListener("click", async function (e) {
-        e.preventDefault();
+    document.getElementById("loginBtn").addEventListener("click", async function () {
 
-        const username = document.querySelector("input[type='text']").value.trim();
-        const password = document.querySelector("input[type='password']").value.trim();
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
 
-        if (!username || !password) {
-          alert("Please fill in all fields.");
-          return;
-        }
+      if (!username || !password) {
+        alert("Please fill in all fields.");
+        return;
+      }
 
+      try {
         const res = await fetch("login.php", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include", // ✅ IMPORTANT: saves/sends PHP session cookie
+          credentials: "include", // ensures PHP session cookie is stored
           body: JSON.stringify({ username, password })
         });
 
@@ -78,12 +80,16 @@
         if (data.success) {
           window.location.href = "home.html";
         } else {
-          alert(data.message);
+          alert(data.message || "Invalid credentials.");
         }
-      });
+
+      } catch (err) {
+        console.error("Login error:", err);
+        alert("Something went wrong. Please try again.");
+      }
+
+    });
   </script>
+
 </body>
-<div style="position:fixed;bottom:8px;right:8px;background:#ff0;padding:6px 10px;border:1px solid #000;font-weight:900;z-index:9999;">
-  HOME UPDATED ✅
-</div>
 </html>
