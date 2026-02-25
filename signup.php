@@ -17,7 +17,7 @@ if (!$name || !$email || !$username || !$password) {
 
 $hash = password_hash($password, PASSWORD_DEFAULT);
 
-// check duplicate username
+// checking duplicate username
 $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
 $stmt->execute([$username]);
 if ($stmt->fetch()) {
@@ -25,7 +25,7 @@ if ($stmt->fetch()) {
     exit;
 }
 
-// insert user
+// inserting user
 $stmt = $pdo->prepare(
   "INSERT INTO users (full_name, email, username, password_hash)
    VALUES (?, ?, ?, ?)"
@@ -33,4 +33,3 @@ $stmt = $pdo->prepare(
 $stmt->execute([$name, $email, $username, $hash]);
 
 echo json_encode(["success" => true]);
-
