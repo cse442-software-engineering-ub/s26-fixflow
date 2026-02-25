@@ -82,52 +82,95 @@
       <div class="row" style="justify-content:space-between; align-items:center;">
         <a class="btn" href="change-password.html" style="width:220px;">Change Password</a>
 
-        <!-- Save + go home -->
-        <a id="saveBtn" class="btn" href="profile-updated.html" style="width:220px;">Update User Profile</a>
+        <!-- Save via API then redirect -->
+        <button type="button" id="saveBtn" class="btn" style="width:220px;">Update User Profile</button>
       </div>
+      <div id="profileError" style="color:#c00; margin-top:8px; display:none;"></div>
 
     </div>
   </div>
 
   <script>
-    // ---- Frontend-only demo storage ----
-    // This makes the name update across pages without backend.
-    const STORAGE_KEY_NAME = "fixflow_username";
-
     const displayNameEl = document.getElementById("displayName");
     const topbarNameEl  = document.getElementById("topbarName");
+    const emailInput    = document.getElementById("emailInput");
     const usernameInput = document.getElementById("usernameInput");
-    const editBtn       = document.getElementById("editBtn");
-    const saveBtn       = document.getElementById("saveBtn");
+    const phoneInput    = document.getElementById("phoneInput");
+    const aboutInput   = document.getElementById("aboutInput");
+    const editBtn      = document.getElementById("editBtn");
+    const saveBtn      = document.getElementById("saveBtn");
+    const profileError = document.getElementById("profileError");
 
-    // Load saved name (if any)
-    const savedName = localStorage.getItem(STORAGE_KEY_NAME);
-    if (savedName && savedName.trim()) {
-      displayNameEl.textContent = savedName;
-      topbarNameEl.textContent = savedName;
-      usernameInput.value = savedName;
-    } else {
-      usernameInput.value = displayNameEl.textContent.trim();
+    function showError(msg) {
+      profileError.textContent = msg || "";
+      profileError.style.display = msg ? "block" : "none";
     }
 
-    // Clicking "edit" focuses username field
+    // Load profile from backend (requires same-origin + session cookie)
+    async function loadProfile() {
+      try {
+        const res = await fetch("profile_get.php", { credentials: "include" });
+        if (res.status === 401) {
+          window.location.href = "login.html";
+          return;
+        }
+        if (!res.ok) {
+          showError("Could not load profile.");
+          return;
+        }
+        const data = await res.json();
+        const u = data.user || {};
+        const name = u.full_name || u.username || "User";
+        displayNameEl.textContent = name;
+        topbarNameEl.textContent = name;
+        emailInput.value = u.email || "";
+        usernameInput.value = u.username || "";
+        phoneInput.value = u.phone || "";
+        aboutInput.value = u.about_me || "";
+      } catch (e) {
+        showError("Failed to load profile. Are you logged in?");
+      }
+    }
+
+    loadProfile();
+
+    // Live update display name while typing username (profile uses username as display if no full_name)
+    usernameInput.addEventListener("input", () => {
+      const v = usernameInput.value.trim() || displayNameEl.textContent;
+      displayNameEl.textContent = v;
+      topbarNameEl.textContent = v;
+    });
+
     editBtn.addEventListener("click", () => {
       usernameInput.focus();
       usernameInput.select();
     });
 
-    // Live update name while typing
-    usernameInput.addEventListener("input", () => {
-      const v = usernameInput.value.trim() || "Sanjay";
-      displayNameEl.textContent = v;
-      topbarNameEl.textContent = v;
-    });
-
-    // Save to localStorage when clicking Update User Profile
-    saveBtn.addEventListener("click", (e) => {
-      const finalName = (usernameInput.value || "").trim() || "Sanjay";
-      localStorage.setItem(STORAGE_KEY_NAME, finalName);
-      // allow normal navigation to home.html
+    saveBtn.addEventListener("click", async () => {
+      showError("");
+      const payload = {
+        full_name: displayNameEl.textContent.trim() || usernameInput.value.trim(),
+        email: emailInput.value.trim(),
+        username: usernameInput.value.trim(),
+        phone: phoneInput.value.trim(),
+        about_me: aboutInput.value.trim()
+      };
+      try {
+        const res = await fetch("profile_update.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success) {
+          showError(data.message || "Update failed.");
+          return;
+        }
+        window.location.href = "profile-updated.html";
+      } catch (e) {
+        showError("Network error. Try again.");
+      }
     });
   </script>
 
