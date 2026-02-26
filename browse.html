@@ -164,6 +164,7 @@
   <script>
     const API_URL = "bugs-list.php";
 
+    /*
     const MOCK_BUGS = [
       { id: 102, title: "Login button not working", status: "In progress", priority: "High", assigned: "user1", createdAt: "2026-02-20T10:00:00Z" },
       { id: 79,  title: "User unable to reset password", status: "Open", priority: "Medium", assigned: "user2", createdAt: "2026-02-21T09:00:00Z" },
@@ -179,7 +180,7 @@
       { id: 117, title: "UI misalignment on mobile view", status: "Open", priority: "Low", assigned: "user3", createdAt: "2026-02-14T08:40:00Z" },
       { id: 118, title: "Password strength meter inaccurate", status: "In progress", priority: "Medium", assigned: "user1", createdAt: "2026-02-25T12:00:00Z" }
     ];
-
+    */
     let allBugs = [];
     let selectedBugId = null;
 
@@ -203,7 +204,8 @@
         if (!Array.isArray(data)) throw new Error("API did not return an array");
         allBugs = data;
       } catch (err) {
-        allBugs = MOCK_BUGS;
+        console.error("Failed to load bugs:", err);
+        allBugs = [];
       }
 
       buildUserFilterOptions(allBugs);
