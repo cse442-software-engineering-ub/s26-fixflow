@@ -1,7 +1,9 @@
 <?php
 header("Content-Type: application/json");
 
+ob_start();
 require_once(__DIR__ . "/db-connection.php");
+ob_end_clean();
 
 if ($_SERVER["REQUEST_METHOD"] !== "GET") {
     http_response_code(405);
