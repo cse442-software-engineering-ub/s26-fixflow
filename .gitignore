@@ -1,2 +1,8 @@
 .DS_Store
-php_check.php
+# Node / Vite
+node_modules/
+dist/
+.vite/
+.env
+.env.*
+*.log
