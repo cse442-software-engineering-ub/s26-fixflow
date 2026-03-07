@@ -38,15 +38,29 @@ export function ForgotPassword() {
     sendVerificationCode();
   };
 
-  const handleCodeContinue = (e: React.FormEvent) => {
+  const handleCodeContinue = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     if (!codeInput.trim()) {
       setError('Please enter the verification code');
       return;
     }
-    setStep('reset');
-    setSuccess('');
+    if (codeInput.trim().length !== 6) {
+      setError('Please enter a valid 6-digit verification code');
+      return;
+    }
+
+    try {
+      const res = await api.verifyResetCode(email, codeInput.trim());
+      if (!res.success) {
+        setError(res.message || 'Invalid or expired code');
+        return;
+      }
+      setStep('reset');
+      setSuccess('');
+    } catch (e: any) {
+      setError(e?.message || 'Invalid or expired code');
+    }
   };
 
   const handlePasswordReset = async (e: React.FormEvent) => {
