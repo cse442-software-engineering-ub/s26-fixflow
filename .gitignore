@@ -1,1 +1,9 @@
 .DS_Store
+# Node / Vite
+node_modules/
+dist/
+.vite/
+.env
+.env.*
+*.log
+api/db-connection.php

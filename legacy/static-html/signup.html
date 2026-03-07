@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>FixFlow - Sign Up</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <div class="auth-wrap">
+    <div style="width:100%; max-width:860px;">
+      <div class="auth-head">
+        <img class="logo" src="logo.png" alt="FixFlow logo">
+        <div class="h1" style="margin:0;">FixFlow</div>
+      </div>
+
+      <div class="auth-card">
+        <div class="auth-title">SIGN UP</div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label>Full Name</label>
+            <input class="input" type="text" placeholder="Enter full name">
+          </div>
+
+          <div class="field">
+            <label>Email</label>
+            <input class="input" type="email" placeholder="Enter email">
+          </div>
+
+          <div class="field">
+            <label>Create Username</label>
+            <input class="input" type="text" placeholder="Enter new username">
+          </div>
+
+          <div class="field">
+            <label>Create Password</label>
+            <input class="input" type="password" placeholder="Enter new password">
+          </div>
+
+          <div class="field">
+            <label>Re-enter Password</label>
+            <input class="input" type="password" placeholder="Re-enter password">
+          </div>
+
+          <div class="auth-actions">
+            <a class="btn-blue" href="signup-success.html">Register</a>
+            <a class="btn-blue secondary" href="login.html">Cancel</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</body>
+
+<script>
+  document.querySelector(".btn-blue")
+    .addEventListener("click", async function (e) {
+      e.preventDefault();
+  
+      const inputs = document.querySelectorAll(".input");
+      const values = [...inputs].map(i => i.value.trim());
+  
+      if (values.some(v => !v)) {
+        alert("Please fill out all fields.");
+        return;
+      }
+  
+      const [name, email, username, password, confirm] = values;
+  
+      if (password !== confirm) {
+        alert("Passwords do not match.");
+        return;
+      }
+  
+      const res = await fetch("signup.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, username, password })
+      });
+  
+      const data = await res.json();
+  
+      if (data.success) {
+        alert("Account created successfully!");
+        window.location.href = "login.html";
+      } else {
+        alert(data.message);
+      }
+    });
+  </script>
+</html>
+  

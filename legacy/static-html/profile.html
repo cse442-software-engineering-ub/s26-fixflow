@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>FixFlow - Profile</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <a class="brand" href="home.html">
+      <img class="brand-logo" src="logo.png" alt="FixFlow logo">
+      <span class="brand-text">FixFlow</span>
+    </a>
+
+    <!-- On profile page, can stay non-clickable -->
+    <div class="user-pill" style="cursor:default; text-decoration:none; color:#111;">
+      <div class="user-avatar"></div>
+      <div id="topbarName">Sanjay</div>
+      <div class="caret">▼</div>
+    </div>
+  </div>
+
+  <div class="container">
+    <a class="back" href="home.html">← Back</a>
+
+    <div class="h1">Update Your Profile</div>
+
+    <div class="card section" style="padding:26px;">
+      <div class="row" style="align-items:center; justify-content:space-between; gap:24px;">
+
+        <!-- left: avatar + name -->
+        <div style="display:flex; align-items:center; gap:22px;">
+          <div style="width:120px;height:120px;border-radius:999px;background:#d8d8d8;"></div>
+
+          <div>
+            <div id="displayName" style="font-size:34px; font-weight:900; margin-bottom:6px;">Sanjay</div>
+
+            <!-- clickable edit -->
+            <button id="editBtn"
+              style="border:0; background:transparent; padding:0; font-size:14px; color:var(--muted); cursor:pointer; text-decoration:underline;">
+              edit
+            </button>
+          </div>
+        </div>
+
+        <!-- right: delete button (go to confirmation page) -->
+        <a href="user-deleted.html"
+           style="background:#ef7d7d; color:#111; padding:10px 18px; border-radius:8px; text-decoration:none; font-weight:800;">
+          Delete User Profile
+        </a>
+      </div>
+
+      <div style="height:18px;"></div>
+
+      <!-- form fields -->
+      <div style="display:grid; grid-template-columns: 160px 1fr; gap:14px 16px; align-items:center;">
+
+        <div style="font-weight:700;">Change Email :</div>
+        <input id="emailInput" class="input" style="border-radius:8px; height:40px; background:#e9ecef; border:0;"
+               placeholder=""/>
+
+        <div style="font-weight:700;">Change Username :</div>
+        <input id="usernameInput" class="input" style="border-radius:8px; height:40px; background:#e9ecef; border:0;"
+               placeholder=""/>
+
+        <div style="font-weight:700;">Phone Number :</div>
+        <input id="phoneInput" class="input" style="border-radius:8px; height:40px; background:#e9ecef; border:0;"
+               placeholder=""/>
+
+        <div style="font-weight:800; align-self:start; margin-top:6px;">About Me</div>
+        <textarea id="aboutInput" class="input" style="border-radius:8px; min-height:64px; padding-top:10px; background:#e9ecef; border:0;"
+                  placeholder="Write about yourself ..."></textarea>
+
+      </div>
+
+      <div style="height:26px;"></div>
+
+      <!-- bottom buttons -->
+      <div class="row" style="justify-content:space-between; align-items:center;">
+        <a class="btn" href="change-password.html" style="width:220px;">Change Password</a>
+
+        <!-- Save + go home -->
+        <a id="saveBtn" class="btn" href="profile-updated.html" style="width:220px;">Update User Profile</a>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // ---- Frontend-only demo storage ----
+    // This makes the name update across pages without backend.
+    const STORAGE_KEY_NAME = "fixflow_username";
+
+    const displayNameEl = document.getElementById("displayName");
+    const topbarNameEl  = document.getElementById("topbarName");
+    const usernameInput = document.getElementById("usernameInput");
+    const editBtn       = document.getElementById("editBtn");
+    const saveBtn       = document.getElementById("saveBtn");
+
+    // Load saved name (if any)
+    const savedName = localStorage.getItem(STORAGE_KEY_NAME);
+    if (savedName && savedName.trim()) {
+      displayNameEl.textContent = savedName;
+      topbarNameEl.textContent = savedName;
+      usernameInput.value = savedName;
+    } else {
+      usernameInput.value = displayNameEl.textContent.trim();
+    }
+
+    // Clicking "edit" focuses username field
+    editBtn.addEventListener("click", () => {
+      usernameInput.focus();
+      usernameInput.select();
+    });
+
+    // Live update name while typing
+    usernameInput.addEventListener("input", () => {
+      const v = usernameInput.value.trim() || "Sanjay";
+      displayNameEl.textContent = v;
+      topbarNameEl.textContent = v;
+    });
+
+    // Save to localStorage when clicking Update User Profile
+    saveBtn.addEventListener("click", (e) => {
+      const finalName = (usernameInput.value || "").trim() || "Sanjay";
+      localStorage.setItem(STORAGE_KEY_NAME, finalName);
+      // allow normal navigation to home.html
+    });
+  </script>
+
+</body>
+</html>

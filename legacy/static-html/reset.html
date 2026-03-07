@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>FixFlow - Reset Password</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <div class="auth-wrap">
+    <div style="width:100%; max-width:860px;">
+      <div class="auth-head">
+        <img class="logo" src="logo.png" alt="FixFlow logo">
+        <div class="h1" style="margin:0;">FixFlow</div>
+      </div>
+
+      <div class="auth-card">
+        <div class="auth-title">RESET PASSWORD</div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label>Email</label>
+            <input class="input" type="email" placeholder="Enter email">
+          </div>
+
+          <div class="field" style="display:flex; justify-content:flex-end;">
+            <a class="helper-link send-code" href="#">Send verification code</a>
+          </div>
+
+          <div class="field">
+            <label>Verification Code</label>
+            <input class="input" type="text" placeholder="Enter verification code">
+          </div>
+
+          <div class="field" style="display:flex; justify-content:flex-end;">
+            <a class="helper-link send-code" href="#" style="color:#c40000;">Didn’t receive email? Re-send</a>
+          </div>
+
+          <div class="field">
+            <label>New Password</label>
+            <input class="input" type="password" placeholder="Enter new password">
+          </div>
+
+          <div class="auth-actions">
+            <a class="btn-blue" href="login.html">Reset &amp; Login</a>
+            <a class="btn-blue secondary" href="login.html">Cancel</a>
+          </div>
+
+          <div class="field">
+            <label>Re-enter password</label>
+            <input class="input" type="password" placeholder="Re-enter password">
+          </div>
+
+          <div></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</body>
+<script>
+  const emailInput = document.querySelector("input[type='email']");
+  const codeInput = document.querySelectorAll("input")[1];
+  const newPass = document.querySelectorAll("input[type='password']")[0];
+  const confirmPass = document.querySelectorAll("input[type='password']")[1];
+
+  document.querySelectorAll(".send-code").forEach(link => {
+    link.addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      const email = emailInput.value.trim();
+      if (!email) {
+        alert("Enter your email first");
+        return;
+      }
+
+      const res = await fetch("send-verification-code.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await res.json();
+      alert(data.message + (data.demo_code ? `\nDemo code: ${data.demo_code}` : ""));
+    });
+});
+
+  document
+    .querySelector(".btn-blue")
+    .addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      const email = emailInput.value.trim();
+      const code = codeInput.value.trim();
+      const pass = newPass.value.trim();
+      const confirm = confirmPass.value.trim();
+
+      if (!email || !code || !pass || !confirm) {
+        alert("Fill out all fields");
+        return;
+      }
+
+      if (pass !== confirm) {
+        alert("Passwords do not match");
+        return;
+      }
+
+      const res = await fetch("reset-password.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, code, password: pass })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        alert("Password reset successful!");
+        window.location.href = "login.html";
+      } else {
+        alert(data.message);
+      }
+    });
+</script>
+</html>
