@@ -49,11 +49,11 @@ if ($assignedTo !== null && $assignedTo !== "") {
 $dbStatus = ($status === "fixed" || $status === "Resolved" || $status === "Closed") ? "Resolved" : "Open";
 
 try {
-    // Insert bug using only columns that are guaranteed to exist
+    // Insert bug (now also persisting code and description)
     $now = date("Y-m-d H:i:s");
     $stmt = $pdo->prepare("
-        INSERT INTO bugs (title, status, priority, created_at, due_date, assigned_user_id)
-        VALUES (:title, :status, :priority, :created_at, :due_date, :assigned_user_id)
+        INSERT INTO bugs (title, status, priority, created_at, due_date, assigned_user_id, code, description)
+        VALUES (:title, :status, :priority, :created_at, :due_date, :assigned_user_id, :code, :description)
     ");
 
     $stmt->execute([
@@ -63,6 +63,8 @@ try {
         ":created_at"      => $now,
         ":due_date"        => $dueDate,
         ":assigned_user_id"=> $assignedUserId,
+        ":code"            => $code,
+        ":description"     => $description,
     ]);
 
     $newId = (int)$pdo->lastInsertId();
@@ -98,7 +100,9 @@ try {
             b.priority,
             b.created_at,
             b.due_date,
-            u.username AS assignedTo
+            u.username AS assignedTo,
+            b.code,
+            b.description
         FROM bugs b
         LEFT JOIN users u ON b.assigned_user_id = u.id
         WHERE b.id = ?

@@ -32,8 +32,8 @@ $sql = "
         b.created_at,
         b.due_date,
         u.username AS assignedTo,
-        '' AS code,
-        '' AS description
+        b.code,
+        b.description
     FROM bugs b
     LEFT JOIN users u ON b.assigned_user_id = u.id
 ";
