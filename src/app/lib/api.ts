@@ -155,8 +155,27 @@ export const api = {
       body: JSON.stringify(payload),
     }),
 
-  deleteBug: (id: number) =>
+  deleteBug: (id: number, reason?: string) =>
     apiFetch<{ success: boolean }>('api/bug-delete.php', {
+      method: 'POST',
+      body: JSON.stringify({ id, reason: reason ?? '' }),
+    }),
+
+  listDeletedBugs: (sort?: 'newest' | 'oldest') => {
+    const params = new URLSearchParams();
+    if (sort) params.set('sort', sort);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return apiFetch<{ success: boolean; bugs: any[] }>(`api/bugs-deleted-list.php${qs}`, { method: 'GET' });
+  },
+
+  restoreBug: (id: number) =>
+    apiFetch<{ success: boolean }>('api/bug-restore.php', {
+      method: 'POST',
+      body: JSON.stringify({ id }),
+    }),
+
+  permanentDeleteBug: (id: number) =>
+    apiFetch<{ success: boolean }>('api/bug-permanent-delete.php', {
       method: 'POST',
       body: JSON.stringify({ id }),
     }),

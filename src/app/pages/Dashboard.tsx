@@ -61,17 +61,47 @@ export function Dashboard({ currentUser, currentRole = 'developer', onLogout, on
     }
   }
 
+  async function refreshDeletedBugs() {
+    try {
+      const res = await api.listDeletedBugs('newest');
+      if (res.success) {
+        setDeletedBugs(
+          res.bugs.map((b: any) => ({
+            id: b.id,
+            bugNumber: b.bugNumber || `Bug-${b.id}`,
+            title: b.title,
+            code: b.code || '',
+            priority: b.priority,
+            dueDate: b.due_date,
+            description: b.description || '',
+            status: b.status === 'Resolved' || b.status === 'Closed' ? 'fixed' : 'active',
+            createdAt: b.created_at,
+            fixedAt: b.fixedAt || undefined,
+            fixDetails: b.fixDetails,
+            assignedTo: b.assignedTo,
+            deletedAt: b.deleted_at,
+            deletedBy: b.deletedBy,
+            deletionReason: b.deletion_reason,
+          } as Bug & { deletedAt?: string; deletedBy?: string; deletionReason?: string }))
+        );
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   // Load bugs from backend and keep them in sync with short polling
   useEffect(() => {
     let cancelled = false;
 
-    const fetchBugs = async () => {
+    const fetchAll = async () => {
       if (cancelled) return;
       await refreshBugs();
+      await refreshDeletedBugs();
     };
 
-    fetchBugs();
-    const interval = setInterval(fetchBugs, 5000); // poll every 5s
+    fetchAll();
+    const interval = setInterval(fetchAll, 5000); // poll every 5s
 
     return () => {
       cancelled = true;
@@ -308,47 +338,50 @@ export function Dashboard({ currentUser, currentRole = 'developer', onLogout, on
 
   const handleConfirmDelete = (reason: string) => {
     if (!bugToDelete) return;
-    const deletedSnapshot = {
-      ...bugToDelete,
-      deletedAt: new Date().toISOString(),
-      deletedBy: currentUser,
-      deletionReason: reason,
-    } as any;
-
-    setDeletedBugs((prev) => [deletedSnapshot, ...prev]);
-    setBugs((prev) => prev.filter((b) => b.id !== bugToDelete.id));
+    const bug = bugToDelete;
+    setBugToDelete(null);
     api
-      .deleteBug(Number(bugToDelete.id))
+      .deleteBug(Number(bug.id), reason)
+      .then(() => {
+        setBugs((prev) => prev.filter((b) => b.id !== bug.id));
+        refreshDeletedBugs();
+        toast.success('Bug deleted successfully!');
+        activityLogger.logActivity({
+          type: 'deleted',
+          bugNumber: bug.bugNumber,
+          bugTitle: bug.title,
+          user: currentUser,
+        });
+      })
       .catch(() => {
-        // Revert local trash/list state if backend delete fails.
-        setDeletedBugs((prev) => prev.filter((b) => b.id !== bugToDelete.id));
-        setBugs((prev) => [bugToDelete, ...prev]);
+        setBugToDelete(bug);
         toast.error('Failed to delete bug.');
       });
-    toast.success('Bug deleted successfully!');
-    
-    activityLogger.logActivity({
-      type: 'deleted',
-      bugNumber: bugToDelete.bugNumber,
-      bugTitle: bugToDelete.title,
-      user: currentUser,
-    });
-    
-    setBugToDelete(null);
   };
 
-  // Deleted bugs are local-only for now.
   const handleRestoreBug = (id: string) => {
-    const bugToRestore = deletedBugs.find((b) => String(b.id) === String(id));
-    if (!bugToRestore) return;
-    setDeletedBugs((prev) => prev.filter((b) => String(b.id) !== String(id)));
-    setBugs((prev) => [bugToRestore, ...prev]);
-    toast.success('Bug restored successfully!');
+    api
+      .restoreBug(Number(id))
+      .then(() => {
+        refreshBugs();
+        refreshDeletedBugs();
+        toast.success('Bug restored successfully!');
+      })
+      .catch(() => {
+        toast.error('Failed to restore bug.');
+      });
   };
 
   const handlePermanentlyDelete = (id: string) => {
-    setDeletedBugs((prev) => prev.filter((b) => String(b.id) !== String(id)));
-    toast.success('Bug permanently deleted.');
+    api
+      .permanentDeleteBug(Number(id))
+      .then(() => {
+        setDeletedBugs((prev) => prev.filter((b) => String(b.id) !== String(id)));
+        toast.success('Bug permanently deleted.');
+      })
+      .catch(() => {
+        toast.error('Failed to permanently delete bug.');
+      });
   };
 
   const handleEditBug = (bug: Bug) => {
