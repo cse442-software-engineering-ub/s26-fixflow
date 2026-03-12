@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { useOutletContext } from 'react-router';
 import { Bug } from '../types';
-import { Trash2, RotateCcw, AlertCircle, Calendar, Code, User, X, MessageSquare } from 'lucide-react';
+import { Trash2, RotateCcw, AlertCircle, Calendar, Code, User, X, MessageSquare, Filter, Search } from 'lucide-react';
 import { motion } from 'motion/react';
+import { UserSelectWithSearch } from '../components/UserSelectWithSearch';
 
 interface OutletContext {
   deletedBugs: Bug[];
@@ -9,10 +11,34 @@ interface OutletContext {
   onPermanentlyDelete: (id: string) => void;
 }
 
+type DeletedBug = Bug & { deletedAt?: string; deletedBy?: string; deletionReason?: string };
+
 export function DeletedBugs() {
   const { deletedBugs, onRestore, onPermanentlyDelete } = useOutletContext<OutletContext>();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterDeletedBy, setFilterDeletedBy] = useState<string>('all');
 
-  const sortedDeletedBugs = [...deletedBugs].sort((a, b) => {
+  const allDeletedByUsers = Array.from(
+    new Set(
+      deletedBugs
+        .map((b) => (b as DeletedBug).deletedBy)
+        .filter((u): u is string => !!u)
+    )
+  ).sort();
+
+  const filteredBugs = deletedBugs.filter((bug) => {
+    const d = bug as DeletedBug;
+    const matchesSearch =
+      !searchTerm.trim() ||
+      bug.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bug.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bug.bugNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(bug.id).includes(searchTerm);
+    const matchesDeletedBy = filterDeletedBy === 'all' || d.deletedBy === filterDeletedBy;
+    return matchesSearch && matchesDeletedBy;
+  });
+
+  const sortedDeletedBugs = [...filteredBugs].sort((a, b) => {
     const dateA = (a as any).deletedAt ? new Date((a as any).deletedAt).getTime() : 0;
     const dateB = (b as any).deletedAt ? new Date((b as any).deletedAt).getTime() : 0;
     return dateB - dateA; // Most recently deleted first
@@ -51,11 +77,54 @@ export function DeletedBugs() {
             <h2 className="text-3xl sm:text-4xl font-bold">Deleted Bugs</h2>
           </div>
           <p className="text-slate-300 text-base sm:text-lg">
-            {deletedBugs.length} {deletedBugs.length === 1 ? 'bug' : 'bugs'} in trash
+            {filteredBugs.length} of {deletedBugs.length} {deletedBugs.length === 1 ? 'bug' : 'bugs'} in trash
           </p>
         </motion.div>
 
-        {deletedBugs.length === 0 ? (
+        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <Filter className="w-5 h-5 text-gray-600" />
+            <h3 className="font-semibold text-gray-900">Filters</h3>
+          </div>
+
+          <div className="flex flex-wrap gap-4 mb-4 ml-0 sm:ml-8">
+            <div className="w-full sm:flex-1 sm:min-w-[200px]">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Search
+              </label>
+              <div className="relative">
+                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Bug title, ID, or description..."
+                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 text-sm font-medium bg-white text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-800 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <div className="w-full sm:w-56">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Deleted By
+              </label>
+              <UserSelectWithSearch
+                users={allDeletedByUsers}
+                value={filterDeletedBy}
+                onChange={setFilterDeletedBy}
+                allOptionValue="all"
+                allOptionLabel="All Users"
+              />
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-gray-200">
+            <p className="text-sm text-gray-600">
+              Showing <span className="font-semibold text-gray-900">{filteredBugs.length}</span> {filteredBugs.length === 1 ? 'bug' : 'bugs'}
+            </p>
+          </div>
+        </div>
+
+        {filteredBugs.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -64,8 +133,14 @@ export function DeletedBugs() {
             <div className="inline-flex items-center justify-center w-24 h-24 bg-gray-100 rounded-full mb-4">
               <Trash2 className="w-12 h-12 text-gray-400" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">Trash is empty</h3>
-            <p className="text-gray-600 text-lg">Deleted bugs will appear here</p>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              {deletedBugs.length === 0 ? 'Trash is empty' : 'No bugs found'}
+            </h3>
+            <p className="text-gray-600 text-lg">
+              {deletedBugs.length === 0
+                ? 'Deleted bugs will appear here'
+                : 'Try adjusting your search or filter'}
+            </p>
           </motion.div>
         ) : (
           <div className="space-y-6">
