@@ -234,11 +234,7 @@ export function BugDetailModal({ bug, onClose, onEdit, onToggleStatus, onDelete 
                           <span className="text-gray-500">Lines: {bug.fixDetails.removedCode.lineNumbers}</span>
                         )}
                       </div>
-                      {bug.fixDetails.removedCode.reference && (
-                        <pre className="bg-red-50 p-2 rounded border border-red-200 overflow-x-auto text-xs font-mono text-gray-900">
-{bug.fixDetails.removedCode.reference}
-                        </pre>
-                      )}
+                      {/* Intentionally only showing which file and which lines were removed */}
                     </div>
                   </div>
                 )}
