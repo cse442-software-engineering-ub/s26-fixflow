@@ -244,7 +244,7 @@ export function BugHistory() {
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-medium text-gray-900">
-                          {activity.type === 'fixed' ? `Fixed: ${activity.description}` : activity.description}
+                          {activity.description}
                         </p>
                         <p className="text-xs text-gray-500">{formatDate(activity.date)}</p>
                       </div>
