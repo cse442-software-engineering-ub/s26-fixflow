@@ -128,7 +128,19 @@ export function MarkAsFixedModal({ bug, onSubmit, onCancel }: MarkAsFixedModalPr
                 />
               </div>
 
-              {/* Intentionally only capturing which file and which lines were removed */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <Code className="w-4 h-4 inline mr-1" />
+                  Code Reference
+                </label>
+                <textarea
+                  value={formData.removedReference}
+                  onChange={(e) => setFormData({ ...formData, removedReference: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none font-mono text-sm"
+                  rows={3}
+                  placeholder="Paste the code that was removed..."
+                />
+              </div>
             </div>
           </div>
 
@@ -167,7 +179,19 @@ export function MarkAsFixedModal({ bug, onSubmit, onCancel }: MarkAsFixedModalPr
                 />
               </div>
 
-              {/* Intentionally only capturing which file and which lines were added */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <Code className="w-4 h-4 inline mr-1" />
+                  Code Reference
+                </label>
+                <textarea
+                  value={formData.addedReference}
+                  onChange={(e) => setFormData({ ...formData, addedReference: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none font-mono text-sm"
+                  rows={3}
+                  placeholder="Paste the new code that was added..."
+                />
+              </div>
             </div>
           </div>
 
