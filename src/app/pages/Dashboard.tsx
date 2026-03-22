@@ -213,7 +213,11 @@ export function Dashboard({ currentUser, currentRole = 'developer', onLogout, on
       });
 
       if (!res.success) {
-        toast.error('Failed to update bug');
+        toast.error(
+          'message' in res && typeof (res as { message?: string }).message === 'string'
+            ? (res as { message: string }).message
+            : 'Failed to update bug'
+        );
         return;
       }
 
@@ -250,8 +254,15 @@ export function Dashboard({ currentUser, currentRole = 'developer', onLogout, on
         bugTitle: editingBug.title,
         user: currentUser,
       });
-    } catch {
-      toast.error('Failed to save. Please try again.');
+    } catch (err: unknown) {
+      const msg =
+        err &&
+        typeof err === 'object' &&
+        'message' in err &&
+        typeof (err as { message: unknown }).message === 'string'
+          ? (err as { message: string }).message
+          : 'Failed to save. Please try again.';
+      toast.error(msg);
     }
   };
 

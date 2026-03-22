@@ -22,6 +22,7 @@ export function BugForm({ onSubmit, onCancel, initialData, allUsers }: BugFormPr
   });
   const [assigneeSearch, setAssigneeSearch] = useState('');
   const [assigneeDropdownOpen, setAssigneeDropdownOpen] = useState(false);
+  const [titleError, setTitleError] = useState('');
   const assigneeDropdownRef = useRef<HTMLDivElement>(null);
 
   const filteredUsers = allUsers.filter((user) => {
@@ -29,6 +30,10 @@ export function BugForm({ onSubmit, onCancel, initialData, allUsers }: BugFormPr
     if (!q) return true;
     return user.username.toLowerCase().includes(q) || user.email.toLowerCase().includes(q);
   });
+
+  useEffect(() => {
+    setTitleError('');
+  }, [initialData?.id]);
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -50,7 +55,13 @@ export function BugForm({ onSubmit, onCancel, initialData, allUsers }: BugFormPr
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    const trimmedTitle = formData.title.trim();
+    if (!trimmedTitle) {
+      setTitleError('Title is required');
+      return;
+    }
+    setTitleError('');
+    onSubmit({ ...formData, title: trimmedTitle });
   };
 
   return (
@@ -77,10 +88,16 @@ export function BugForm({ onSubmit, onCancel, initialData, allUsers }: BugFormPr
               type="text"
               required
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+              onChange={(e) => {
+                setTitleError('');
+                setFormData({ ...formData, title: e.target.value });
+              }}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none ${
+                titleError ? 'border-red-500' : 'border-gray-300'
+              }`}
               placeholder="e.g., Login button not responding"
             />
+            {titleError ? <p className="text-sm text-red-600 mt-1">{titleError}</p> : null}
           </div>
 
           <div>
