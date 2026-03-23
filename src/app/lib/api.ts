@@ -122,7 +122,10 @@ export const api = {
     if (options?.sort) params.set('sort', options.sort);
     if (options?.assignedTo) params.set('assignedTo', options.assignedTo);
     const qs = params.toString() ? `?${params.toString()}` : '';
-    return apiFetch<{ success: boolean; bugs: any[] }>(`api/bugs-list.php${qs}`, { method: 'GET' });
+    return apiFetch<{ success: boolean; bugs: any[] }>(`api/bugs-list.php${qs}`, {
+      method: 'GET',
+      cache: 'no-store',
+    });
   },
 
   createBug: (payload: {
@@ -165,7 +168,10 @@ export const api = {
     const params = new URLSearchParams();
     if (sort) params.set('sort', sort);
     const qs = params.toString() ? `?${params.toString()}` : '';
-    return apiFetch<{ success: boolean; bugs: any[] }>(`api/bugs-deleted-list.php${qs}`, { method: 'GET' });
+    return apiFetch<{ success: boolean; bugs: any[] }>(`api/bugs-deleted-list.php${qs}`, {
+      method: 'GET',
+      cache: 'no-store',
+    });
   },
 
   restoreBug: (id: number) =>
