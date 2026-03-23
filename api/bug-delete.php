@@ -29,7 +29,18 @@ if (!$id) {
     exit;
 }
 
-ensureSoftDeleteColumns($pdo);
+try {
+    ensureSoftDeleteColumns($pdo);
+    if (!softDeleteColumnsAvailable($pdo)) {
+        http_response_code(500);
+        echo json_encode(["success" => false, "message" => "Soft-delete columns are unavailable on server"]);
+        exit;
+    }
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(["success" => false, "message" => "Soft-delete setup failed on server"]);
+    exit;
+}
 
 try {
     $stmtBug = $pdo->prepare("SELECT id, title, assigned_user_id, deleted_at FROM bugs WHERE id = ?");
