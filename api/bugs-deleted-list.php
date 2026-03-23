@@ -13,7 +13,18 @@ if (!isset($_SESSION["user_id"])) {
     exit;
 }
 
-ensureSoftDeleteColumns($pdo);
+$softDeleteReady = true;
+try {
+    ensureSoftDeleteColumns($pdo);
+    $softDeleteReady = softDeleteColumnsAvailable($pdo);
+} catch (PDOException $e) {
+    $softDeleteReady = false;
+}
+
+if (!$softDeleteReady) {
+    echo json_encode(["success" => true, "bugs" => []]);
+    exit;
+}
 
 $sort = $_GET["sort"] ?? "newest";
 $order = ($sort === "oldest") ? "ASC" : "DESC";
