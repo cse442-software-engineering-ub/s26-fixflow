@@ -23,17 +23,6 @@ $order = ($sort === "oldest") ? "ASC" : "DESC";
 $assignedTo = $_GET["assignedTo"] ?? "";
 $currentUserId = (int)$_SESSION["user_id"];
 
-require_once __DIR__ . "/soft-delete-helpers.php";
-$softDeleteReady = true;
-try {
-    ensureSoftDeleteColumns($pdo);
-    $softDeleteReady = softDeleteColumnsAvailable($pdo);
-} catch (PDOException $e) {
-    // Production DB user may not have ALTER privileges.
-    // Keep list endpoint available and avoid filtering by missing columns.
-    $softDeleteReady = false;
-}
-
 $sql = "
     SELECT 
         b.id,
@@ -51,9 +40,6 @@ $sql = "
 
 $clauses = [];
 $params = [];
-if ($softDeleteReady) {
-    $clauses[] = "(b.deleted_at IS NULL OR b.deleted_at = '')";
-}
 
 if ($status !== "") {
     $clauses[] = "b.status = :status";
@@ -70,7 +56,7 @@ if ($assignedTo !== "") {
     }
 }
 
-if (count($clauses) > 0) {
+if ($clauses) {
     $sql .= " WHERE " . implode(" AND ", $clauses);
 }
 
@@ -100,4 +86,3 @@ try {
     http_response_code(500);
     echo json_encode(["success" => false, "message" => "Query failed"]);
 }
-
