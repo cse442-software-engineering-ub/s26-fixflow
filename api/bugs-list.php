@@ -26,7 +26,15 @@ $assignedTo = $_GET["assignedTo"] ?? "";
 $currentUserId = (int)$_SESSION["user_id"];
 
 require_once __DIR__ . "/soft-delete-helpers.php";
-ensureSoftDeleteColumns($pdo);
+$softDeleteReady = true;
+try {
+    ensureSoftDeleteColumns($pdo);
+    $softDeleteReady = softDeleteColumnsAvailable($pdo);
+} catch (PDOException $e) {
+    // Production DB user may not have ALTER privileges.
+    // Keep list endpoint available and avoid filtering by missing columns.
+    $softDeleteReady = false;
+}
 
 $sql = "
     SELECT 
@@ -43,8 +51,11 @@ $sql = "
     LEFT JOIN users u ON b.assigned_user_id = u.id
 ";
 
-$clauses = ["(b.deleted_at IS NULL OR b.deleted_at = '')"];
+$clauses = [];
 $params = [];
+if ($softDeleteReady) {
+    $clauses[] = "(b.deleted_at IS NULL OR b.deleted_at = '')";
+}
 
 if ($status !== "") {
     $clauses[] = "b.status = :status";
@@ -61,7 +72,9 @@ if ($assignedTo !== "") {
     }
 }
 
-$sql .= " WHERE " . implode(" AND ", $clauses);
+if (count($clauses) > 0) {
+    $sql .= " WHERE " . implode(" AND ", $clauses);
+}
 
 $sql .= " ORDER BY b.id $order ";
 
