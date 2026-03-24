@@ -9,12 +9,13 @@ export type DeletedBug = Bug & { deletedAt?: string; deletedBy?: string; deletio
 
 interface OutletContext {
   deletedBugs: Bug[];
+  allUsers?: string[];
   onRestore: (bug: DeletedBug) => void;
   onPermanentlyDelete: (id: string) => void;
 }
 
 export function DeletedBugs() {
-  const { deletedBugs, onRestore, onPermanentlyDelete } = useOutletContext<OutletContext>();
+  const { deletedBugs, allUsers = [], onRestore, onPermanentlyDelete } = useOutletContext<OutletContext>();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDeletedBy, setFilterDeletedBy] = useState<string>('all');
 
@@ -25,6 +26,7 @@ export function DeletedBugs() {
         .filter((u): u is string => !!u)
     )
   ).sort();
+  const selectableDeletedByUsers = Array.from(new Set([...allUsers, ...allDeletedByUsers])).sort();
 
   const filteredBugs = deletedBugs.filter((bug) => {
     const d = bug as DeletedBug;
@@ -43,6 +45,8 @@ export function DeletedBugs() {
     const dateB = (b as any).deletedAt ? new Date((b as any).deletedAt).getTime() : 0;
     return dateB - dateA; // Most recently deleted first
   });
+  const selectedUserHasDeletedBugs =
+    filterDeletedBy !== 'all' && deletedBugs.some((b) => (b as DeletedBug).deletedBy === filterDeletedBy);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -113,7 +117,7 @@ export function DeletedBugs() {
                 Deleted By
               </label>
               <UserSelectWithSearch
-                users={allDeletedByUsers}
+                users={selectableDeletedByUsers}
                 value={filterDeletedBy}
                 onChange={setFilterDeletedBy}
                 allOptionValue="all"
@@ -139,12 +143,18 @@ export function DeletedBugs() {
               <Trash2 className="w-12 h-12 text-gray-400" />
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-2">
-              {deletedBugs.length === 0 ? 'Trash is empty' : 'No bugs found'}
+              {deletedBugs.length === 0
+                ? 'Trash is empty'
+                : filterDeletedBy !== 'all' && !selectedUserHasDeletedBugs
+                  ? `${filterDeletedBy} hasn't deleted any bugs`
+                  : 'No bugs found'}
             </h3>
             <p className="text-gray-600 text-lg">
               {deletedBugs.length === 0
                 ? 'Deleted bugs will appear here'
-                : 'Try adjusting your search or filter'}
+                : filterDeletedBy !== 'all' && !selectedUserHasDeletedBugs
+                  ? 'Try selecting another user or All Users'
+                  : 'Try adjusting your search or filter'}
             </p>
           </motion.div>
         ) : (
