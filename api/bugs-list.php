@@ -38,7 +38,7 @@ $sql = "
     LEFT JOIN users u ON b.assigned_user_id = u.id
 ";
 
-$clauses = [];
+$clauses = ["b.deleted_at IS NULL"];
 $params = [];
 
 if ($status !== "") {
