@@ -132,6 +132,4 @@ try {
     http_response_code(500);
     echo json_encode(["success" => false, "message" => "Failed to create bug"]);
 }
-
-
 //added backend sql code for edit bug UI in phpMyAdmin (no changes in php files were required)
