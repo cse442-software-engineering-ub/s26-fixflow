@@ -51,7 +51,11 @@ export function Dashboard({ currentUser, currentRole = 'developer', onLogout, on
               createdAt: b.created_at,
               fixedAt: b.fixedAt || b.fixed_at || existing?.fixedAt || undefined,
               fixDetails: b.fixDetails || existing?.fixDetails || undefined,
-              assignedTo: b.assignedTo || undefined,
+              assignedTo:
+                b.assignedTo ??
+                b.assignedto ??
+                existing?.assignedTo ??
+                undefined,
             } as Bug;
           });
         });
@@ -78,7 +82,7 @@ export function Dashboard({ currentUser, currentRole = 'developer', onLogout, on
             createdAt: b.created_at,
             fixedAt: b.fixedAt || undefined,
             fixDetails: b.fixDetails,
-            assignedTo: b.assignedTo,
+            assignedTo: b.assignedTo ?? b.assignedto,
             deletedAt: b.deleted_at,
             deletedBy: b.deletedBy,
             deletionReason: b.deletion_reason,
@@ -213,7 +217,11 @@ export function Dashboard({ currentUser, currentRole = 'developer', onLogout, on
       });
 
       if (!res.success) {
-        toast.error('Failed to update bug');
+        toast.error(
+          'message' in res && typeof (res as { message?: string }).message === 'string'
+            ? (res as { message: string }).message
+            : 'Failed to update bug'
+        );
         return;
       }
 
@@ -250,8 +258,15 @@ export function Dashboard({ currentUser, currentRole = 'developer', onLogout, on
         bugTitle: editingBug.title,
         user: currentUser,
       });
-    } catch {
-      toast.error('Failed to save. Please try again.');
+    } catch (err: unknown) {
+      const msg =
+        err &&
+        typeof err === 'object' &&
+        'message' in err &&
+        typeof (err as { message: unknown }).message === 'string'
+          ? (err as { message: string }).message
+          : 'Failed to save. Please try again.';
+      toast.error(msg);
     }
   };
 
@@ -359,12 +374,33 @@ export function Dashboard({ currentUser, currentRole = 'developer', onLogout, on
       });
   };
 
-  const handleRestoreBug = (id: string) => {
+  const handleRestoreBug = (bugFromTrash: Bug) => {
+    const idStr = String(bugFromTrash.id);
+
     api
-      .restoreBug(Number(id))
-      .then(() => {
-        refreshBugs();
-        refreshDeletedBugs();
+      .restoreBug(Number(bugFromTrash.id))
+      .then(async () => {
+        // Always rehydrate from the row that was clicked (no deletedBugs.find — avoids id mismatch).
+        const rehydrated: Bug = {
+          id: bugFromTrash.id,
+          bugNumber: bugFromTrash.bugNumber || `Bug-${bugFromTrash.id}`,
+          title: bugFromTrash.title,
+          code: bugFromTrash.code || '',
+          priority: bugFromTrash.priority,
+          dueDate: bugFromTrash.dueDate,
+          description: bugFromTrash.description || '',
+          status: bugFromTrash.status,
+          createdAt: bugFromTrash.createdAt,
+          fixedAt: bugFromTrash.fixedAt,
+          fixDetails: bugFromTrash.fixDetails,
+          assignedTo: bugFromTrash.assignedTo,
+        };
+        setBugs((prev) => {
+          const without = prev.filter((b) => String(b.id) !== idStr);
+          return [rehydrated, ...without];
+        });
+        await refreshBugs();
+        await refreshDeletedBugs();
         toast.success('Bug restored successfully!');
       })
       .catch(() => {

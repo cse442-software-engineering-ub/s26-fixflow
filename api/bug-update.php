@@ -40,6 +40,12 @@ if (!$existing) {
     exit;
 }
 
+if (array_key_exists("title", $data) && trim((string)$data["title"]) === "") {
+    http_response_code(400);
+    echo json_encode(["success" => false, "message" => "Title is required"]);
+    exit;
+}
+
 // Prepare fields to update (partial update)
 $fields = [];
 $params = [];

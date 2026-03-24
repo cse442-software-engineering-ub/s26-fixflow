@@ -23,9 +23,6 @@ $order = ($sort === "oldest") ? "ASC" : "DESC";
 $assignedTo = $_GET["assignedTo"] ?? "";
 $currentUserId = (int)$_SESSION["user_id"];
 
-require_once __DIR__ . "/soft-delete-helpers.php";
-ensureSoftDeleteColumns($pdo);
-
 $sql = "
     SELECT 
         b.id,
@@ -41,7 +38,7 @@ $sql = "
     LEFT JOIN users u ON b.assigned_user_id = u.id
 ";
 
-$clauses = ["(b.deleted_at IS NULL OR b.deleted_at = '')"];
+$clauses = ["b.deleted_at IS NULL"];
 $params = [];
 
 if ($status !== "") {
@@ -59,7 +56,9 @@ if ($assignedTo !== "") {
     }
 }
 
-$sql .= " WHERE " . implode(" AND ", $clauses);
+if ($clauses) {
+    $sql .= " WHERE " . implode(" AND ", $clauses);
+}
 
 $sql .= " ORDER BY b.id $order ";
 
