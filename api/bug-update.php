@@ -239,4 +239,5 @@ try {
     echo json_encode(["success" => false, "message" => "Failed to update bug"]);
 }
 
+
 //added backend sql code for edit bug UI in phpMyAdmin (no changes in php files were required)

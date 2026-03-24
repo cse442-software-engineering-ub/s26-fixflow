@@ -41,11 +41,7 @@ $sql = "
     LEFT JOIN users u ON b.assigned_user_id = u.id
 ";
 
-<<<<<<< Updated upstream
 $clauses = ["(b.deleted_at IS NULL OR b.deleted_at = '')"];
-=======
-$clauses = [];
->>>>>>> Stashed changes
 $params = [];
 
 if ($status !== "") {
@@ -91,5 +87,6 @@ try {
     http_response_code(500);
     echo json_encode(["success" => false, "message" => "Query failed"]);
 }
+
 
 //added backend sql code for edit bug UI in phpMyAdmin (no changes in php files were required)
