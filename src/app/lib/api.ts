@@ -164,6 +164,19 @@ export const api = {
       body: JSON.stringify({ id, reason: reason ?? '' }),
     }),
 
+  suggestPriority: (payload: { title: string; description: string; code?: string }) =>
+    apiFetch<{
+      success: boolean;
+      priority: 'high' | 'medium' | 'low';
+      explanation: string;
+      provider: string | null;
+      fromCache: boolean;
+      fallback?: boolean;
+    }>('api/suggest-priority.php', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
   listDeletedBugs: (sort?: 'newest' | 'oldest') => {
     const params = new URLSearchParams();
     if (sort) params.set('sort', sort);

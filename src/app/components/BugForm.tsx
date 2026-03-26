@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
+import { api } from '../lib/api';
 import { Bug, Priority } from '../types';
 
 interface BugFormProps {
@@ -10,6 +11,24 @@ interface BugFormProps {
 }
 
 export function BugForm({ onSubmit, onCancel, initialData, allUsers }: BugFormProps) {
+  const AI_NOTE_HEADER = '[AI Triage Note]';
+
+  const stripAiTriageNote = (text: string): string => {
+    const markerIndex = text.indexOf(`\n---\n${AI_NOTE_HEADER}\n`);
+    if (markerIndex === -1) return text;
+    return text.slice(0, markerIndex).trimEnd();
+  };
+
+  const upsertAiTriageNote = (description: string, aiNote: string): string => {
+    const base = stripAiTriageNote(description).trimEnd();
+    const note = aiNote.trim();
+    if (!note) return base;
+    if (!base) {
+      return `${AI_NOTE_HEADER}\n${note}`;
+    }
+    return `${base}\n---\n${AI_NOTE_HEADER}\n${note}`;
+  };
+
   const [formData, setFormData] = useState({
     title: initialData?.title || '',
     code: initialData?.code || '',
@@ -23,6 +42,8 @@ export function BugForm({ onSubmit, onCancel, initialData, allUsers }: BugFormPr
   const [assigneeSearch, setAssigneeSearch] = useState('');
   const [assigneeDropdownOpen, setAssigneeDropdownOpen] = useState(false);
   const [titleError, setTitleError] = useState('');
+  const [aiSuggesting, setAiSuggesting] = useState(false);
+  const [aiError, setAiError] = useState('');
   const assigneeDropdownRef = useRef<HTMLDivElement>(null);
 
   const filteredUsers = allUsers.filter((user) => {
@@ -62,6 +83,37 @@ export function BugForm({ onSubmit, onCancel, initialData, allUsers }: BugFormPr
     }
     setTitleError('');
     onSubmit({ ...formData, title: trimmedTitle });
+  };
+
+  const handleSuggestPriority = async () => {
+    setAiError('');
+
+    const title = formData.title.trim();
+    const description = formData.description.trim();
+    const code = formData.code.trim();
+    if (!title || !description) {
+      setAiError('Add a title and description before suggesting priority.');
+      return;
+    }
+
+    setAiSuggesting(true);
+    try {
+      const res = await api.suggestPriority({ title, description, code });
+      if (res.success) {
+        setFormData((prev) => ({
+          ...prev,
+          priority: res.priority as Priority,
+          description: upsertAiTriageNote(prev.description, res.explanation),
+        }));
+      } else {
+        // Never block the form; keep the user's current priority.
+        setAiError('Failed to suggest priority.');
+      }
+    } catch {
+      setAiError('Failed to suggest priority. You can still submit normally.');
+    } finally {
+      setAiSuggesting(false);
+    }
   };
 
   return (
@@ -116,9 +168,25 @@ export function BugForm({ onSubmit, onCancel, initialData, allUsers }: BugFormPr
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Priority *
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Priority *
+                </label>
+                {!initialData && (
+                  <button
+                    type="button"
+                    disabled={
+                      aiSuggesting ||
+                      !formData.title.trim() ||
+                      !formData.description.trim()
+                    }
+                    onClick={handleSuggestPriority}
+                    className="px-3 py-1 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed transition-colors text-xs font-medium"
+                  >
+                    {aiSuggesting ? 'Suggesting...' : 'Suggest Priority'}
+                  </button>
+                )}
+              </div>
               <select
                 value={formData.priority}
                 onChange={(e) => setFormData({ ...formData, priority: e.target.value as Priority })}
@@ -128,6 +196,12 @@ export function BugForm({ onSubmit, onCancel, initialData, allUsers }: BugFormPr
                 <option value="medium">Medium</option>
                 <option value="low">Low</option>
               </select>
+
+              {!initialData && (
+                <div className="mt-2 space-y-2">
+                  {aiError ? <p className="text-sm text-red-600">{aiError}</p> : null}
+                </div>
+              )}
             </div>
 
             <div>
