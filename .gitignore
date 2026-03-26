@@ -7,3 +7,4 @@ dist/
 .env.*
 *.log
 api/db-connection.php
+api/ai-keys.php
