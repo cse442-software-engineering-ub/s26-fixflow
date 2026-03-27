@@ -205,6 +205,12 @@ export const api = {
       body: JSON.stringify({ email }),
     }),
 
+  verifyResetCode: (email: string, code: string) =>
+    apiFetch<{ success: boolean; message?: string }>('api/verify-reset-code.php', {
+      method: 'POST',
+      body: JSON.stringify({ email, code }),
+    }),
+
   resetPassword: (email: string, code: string, password: string) =>
     apiFetch<{ success: boolean; message?: string }>('api/reset-password.php', {
       method: 'POST',
@@ -310,4 +316,5 @@ export const api = {
       method: 'GET',
     }),
 };
+
 
