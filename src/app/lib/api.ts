@@ -68,7 +68,15 @@ export const api = {
     apiFetch<{ success: boolean; message?: string }>('api/notifications-mark-read.php', { method: 'POST' }),
 
   me: () =>
-    apiFetch<{ authenticated: boolean; user_id?: number; username?: string; role?: 'admin' | 'developer' }>('api/me.php', {
+    apiFetch<{
+      authenticated: boolean;
+      user_id?: number;
+      username?: string;
+      full_name?: string | null;
+      avatar_gradient?: string;
+      avatar_image?: string | null;
+      role?: 'admin' | 'developer';
+    }>('api/me.php', {
       method: 'GET',
     }),
 
@@ -96,6 +104,8 @@ export const api = {
         username: string;
         created_at?: string;
         joinDate?: string;
+        avatar_gradient?: string;
+        avatar_image?: string | null;
       };
       assignedBugs: any[];
     }>(
@@ -103,7 +113,13 @@ export const api = {
       { method: 'GET' }
     ),
 
-  profileUpdate: (updates: { full_name?: string; email?: string; username?: string }) =>
+  profileUpdate: (updates: {
+    full_name?: string;
+    email?: string;
+    username?: string;
+    avatar_gradient?: string;
+    avatar_image?: string | null;
+  }) =>
     apiFetch<{ success: boolean; message?: string }>('api/profile_update.php', {
       method: 'POST',
       body: JSON.stringify(updates),

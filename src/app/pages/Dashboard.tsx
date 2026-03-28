@@ -14,12 +14,25 @@ import { activityLogger } from '../lib/activity';
 
 interface DashboardProps {
   currentUser: string;
+  sessionDisplayName: string;
+  sessionAvatarGradient: string;
+  sessionAvatarImage: string | null;
   currentRole?: 'admin' | 'developer';
   onLogout: () => void;
   onUserUpdate?: (newUsername: string) => void;
+  onSessionRefresh?: () => void | Promise<void>;
 }
 
-export function Dashboard({ currentUser, currentRole = 'developer', onLogout, onUserUpdate }: DashboardProps) {
+export function Dashboard({
+  currentUser,
+  sessionDisplayName,
+  sessionAvatarGradient,
+  sessionAvatarImage,
+  currentRole = 'developer',
+  onLogout,
+  onUserUpdate,
+  onSessionRefresh,
+}: DashboardProps) {
   const [bugs, setBugs] = useState<Bug[]>([]);
   const [deletedBugs, setDeletedBugs] = useState<Bug[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -442,6 +455,9 @@ export function Dashboard({ currentUser, currentRole = 'developer', onLogout, on
       <Navbar 
         onAddBug={() => setShowForm(true)} 
         currentUser={currentUser}
+        sessionDisplayName={sessionDisplayName}
+        sessionAvatarGradient={sessionAvatarGradient}
+        sessionAvatarImage={sessionAvatarImage}
         isAdmin={currentRole === 'admin'}
         onLogout={onLogout}
         onOpenAccount={() => setShowAccountModal(true)}
@@ -455,6 +471,7 @@ export function Dashboard({ currentUser, currentRole = 'developer', onLogout, on
             bugs,
             deletedBugs,
             currentUser,
+            sessionDisplayName,
             allUsers: assignableUsers.map((u) => u.username),
             onToggleStatus: handleToggleStatus, 
             onEdit: handleEditBug, 
@@ -504,6 +521,7 @@ export function Dashboard({ currentUser, currentRole = 'developer', onLogout, on
           onClose={() => setShowAccountModal(false)}
           currentUser={currentUser}
           onUserUpdate={onUserUpdate}
+          onSessionRefresh={onSessionRefresh}
           bugs={bugs}
           onBugSelect={handleBugClick}
         />

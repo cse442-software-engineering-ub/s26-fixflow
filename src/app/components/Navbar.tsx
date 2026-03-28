@@ -3,13 +3,20 @@ import { Link, useLocation } from 'react-router';
 import { Bug, List, CheckCircle, Clock, Home, User, Menu, X, Users, AlertCircle, History, Trash2, Zap, Search, Shield } from 'lucide-react';
 import logoImage from '../../assets/fflogo.jpeg';
 import { motion, AnimatePresence } from 'motion/react';
-import { auth } from '../lib/auth';
 import { RecentActivity } from './RecentActivity';
+import {
+  DEFAULT_AVATAR_GRADIENT_ID,
+  isPersistedCustomAvatar,
+  normalizeAvatarGradientId,
+} from '../lib/user-display';
 import { Bug as BugType } from '../types';
 
 interface NavbarProps {
   onAddBug: () => void;
   currentUser: string;
+  sessionDisplayName: string;
+  sessionAvatarGradient: string;
+  sessionAvatarImage: string | null;
   isAdmin?: boolean;
   onLogout: () => void;
   onOpenAccount: () => void;
@@ -18,14 +25,24 @@ interface NavbarProps {
   onRefreshBugs?: () => void;
 }
 
-export function Navbar({ onAddBug, currentUser, isAdmin = false, onLogout, onOpenAccount, bugs, onBugSelect, onRefreshBugs }: NavbarProps) {
+export function Navbar({
+  onAddBug,
+  currentUser,
+  sessionDisplayName,
+  sessionAvatarGradient,
+  sessionAvatarImage,
+  isAdmin = false,
+  onLogout,
+  onOpenAccount,
+  bugs,
+  onBugSelect,
+  onRefreshBugs,
+}: NavbarProps) {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<BugType[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
-
-  const userInfo = auth.getUserInfo(currentUser);
 
   // Search functionality
   const handleSearch = (query: string) => {
@@ -55,7 +72,7 @@ export function Navbar({ onAddBug, currentUser, isAdmin = false, onLogout, onOpe
   };
 
   const avatars = [
-    { id: 'gradient-blue', colors: 'from-blue-500 to-purple-600' },
+    { id: DEFAULT_AVATAR_GRADIENT_ID, colors: 'from-blue-500 to-purple-600' },
     { id: 'gradient-pink', colors: 'from-pink-500 to-rose-600' },
     { id: 'gradient-green', colors: 'from-green-500 to-teal-600' },
     { id: 'gradient-orange', colors: 'from-orange-500 to-red-600' },
@@ -71,19 +88,20 @@ export function Navbar({ onAddBug, currentUser, isAdmin = false, onLogout, onOpe
   };
 
   const renderAvatar = (size: string = 'w-8 h-8', iconSize: string = 'w-4 h-4') => {
-    if (userInfo?.avatar && userInfo.avatar.startsWith('data:image')) {
+    if (isPersistedCustomAvatar(sessionAvatarImage)) {
       return (
         <div className={`${size} rounded-full overflow-hidden border-2 border-white`}>
-          <img src={userInfo.avatar} alt="Avatar" className="w-full h-full object-cover" />
-        </div>
-      );
-    } else {
-      return (
-        <div className={`${size} rounded-full bg-gradient-to-br ${getAvatarColors(userInfo?.avatar || 'gradient-blue')} flex items-center justify-center`}>
-          <User className={`${iconSize} text-white`} />
+          <img src={sessionAvatarImage} alt="Avatar" className="w-full h-full object-cover" />
         </div>
       );
     }
+    return (
+      <div
+        className={`${size} rounded-full bg-gradient-to-br ${getAvatarColors(normalizeAvatarGradientId(sessionAvatarGradient))} flex items-center justify-center`}
+      >
+        <User className={`${iconSize} text-white`} />
+      </div>
+    );
   };
 
   const navItems = [
@@ -238,7 +256,7 @@ export function Navbar({ onAddBug, currentUser, isAdmin = false, onLogout, onOpe
               className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all"
             >
               {renderAvatar()}
-              <span className="text-sm font-medium text-gray-900 hidden lg:inline">{currentUser}</span>
+              <span className="text-sm font-medium text-gray-900 hidden lg:inline">{sessionDisplayName}</span>
             </motion.button>
             <button
               onClick={onLogout}
@@ -428,7 +446,7 @@ export function Navbar({ onAddBug, currentUser, isAdmin = false, onLogout, onOpe
                   className="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all"
                 >
                   {renderAvatar()}
-                  <span className="font-medium">{currentUser}</span>
+                  <span className="font-medium">{sessionDisplayName}</span>
                 </button>
                 <button
                   onClick={() => { onLogout(); setMobileMenuOpen(false); }}

@@ -6,6 +6,7 @@ import { UserCheck } from 'lucide-react';
 interface OutletContext {
   bugs: Bug[];
   currentUser: string;
+  sessionDisplayName: string;
   onToggleStatus: (id: string) => void;
   onEdit: (bug: Bug) => void;
   onDelete: (id: string) => void;
@@ -13,7 +14,8 @@ interface OutletContext {
 }
 
 export function AssignedBugs() {
-  const { bugs, currentUser, onToggleStatus, onEdit, onDelete, onBugClick } = useOutletContext<OutletContext>();
+  const { bugs, currentUser, sessionDisplayName, onToggleStatus, onEdit, onDelete, onBugClick } =
+    useOutletContext<OutletContext>();
 
   const assignedBugs = bugs
     .filter(bug => bug.assignedTo === currentUser)
@@ -35,7 +37,7 @@ export function AssignedBugs() {
         <div className="mb-8 bg-slate-800 rounded-2xl p-6 sm:p-8 text-white shadow-lg">
           <h2 className="text-3xl sm:text-4xl font-bold mb-2">Assigned to You</h2>
           <p className="text-slate-300 text-base sm:text-lg">
-            {assignedBugs.length} {assignedBugs.length === 1 ? 'bug' : 'bugs'} assigned to {currentUser}
+            {assignedBugs.length} {assignedBugs.length === 1 ? 'bug' : 'bugs'} assigned to {sessionDisplayName}
           </p>
         </div>
 
