@@ -7,6 +7,7 @@ import { motion } from 'motion/react';
 interface OutletContext {
   bugs: Bug[];
   currentUser: string;
+  sessionDisplayName: string;
   onToggleStatus: (id: string) => void;
   onEdit: (bug: Bug) => void;
   onDelete: (id: string) => void;
@@ -14,7 +15,7 @@ interface OutletContext {
 }
 
 export function Home() {
-  const { bugs, currentUser, onBugClick } = useOutletContext<OutletContext>();
+  const { bugs, sessionDisplayName, onBugClick } = useOutletContext<OutletContext>();
 
   const stats = {
     high: bugs.filter(b => b.priority === 'high' && b.status === 'active').length,
@@ -72,7 +73,7 @@ export function Home() {
         >
           <div className="flex items-center gap-3 mb-2">
             <Sparkles className="w-6 h-6 sm:w-8 sm:h-8" />
-            <h1 className="text-3xl sm:text-4xl font-bold">Welcome back, {currentUser}</h1>
+            <h1 className="text-3xl sm:text-4xl font-bold">Welcome back, {sessionDisplayName}</h1>
           </div>
           <p className="text-slate-300 text-base sm:text-lg">Here's an overview of the system health.</p>
         </motion.div>

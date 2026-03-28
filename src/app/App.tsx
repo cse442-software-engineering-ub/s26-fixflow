@@ -17,6 +17,10 @@ import { BrowseAllBugs } from './pages/BrowseAllBugs';
 import { PrioritizedBugs } from './pages/PrioritizedBugs';
 import { DeletedBugs } from './pages/DeletedBugs';
 import { api } from './lib/api';
+import {
+  DEFAULT_AVATAR_GRADIENT_ID,
+  displayNameForSelf,
+} from './lib/user-display';
 import { AdminUsers } from './pages/AdminUsers';
 
 function LoginWrapper({ onAuthed }: { onAuthed: (username: string) => void }) {
@@ -87,8 +91,33 @@ function SignupWrapper({ onAuthed }: { onAuthed: (username: string) => void }) {
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState('');
+  const [sessionFullName, setSessionFullName] = useState<string | null>(null);
+  const [sessionAvatarGradient, setSessionAvatarGradient] = useState(DEFAULT_AVATAR_GRADIENT_ID);
+  const [sessionAvatarImage, setSessionAvatarImage] = useState<string | null>(null);
   const [currentRole, setCurrentRole] = useState<'admin' | 'developer'>('developer');
   const [isLoading, setIsLoading] = useState(true);
+
+  const applyMeResponse = (res: Awaited<ReturnType<typeof api.me>>) => {
+    if (res.authenticated && res.username) {
+      setCurrentUser(res.username);
+      setSessionFullName(res.full_name ?? null);
+      setSessionAvatarGradient(
+        res.avatar_gradient?.trim() ? res.avatar_gradient.trim() : DEFAULT_AVATAR_GRADIENT_ID
+      );
+      setSessionAvatarImage(res.avatar_image ?? null);
+      setCurrentRole(res.role === 'admin' ? 'admin' : 'developer');
+      setIsAuthenticated(true);
+      localStorage.setItem('currentUser', res.username);
+    } else {
+      setIsAuthenticated(false);
+      setCurrentUser('');
+      setSessionFullName(null);
+      setSessionAvatarGradient(DEFAULT_AVATAR_GRADIENT_ID);
+      setSessionAvatarImage(null);
+      setCurrentRole('developer');
+      localStorage.removeItem('currentUser');
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -96,21 +125,14 @@ export default function App() {
       try {
         const res = await api.me();
         if (cancelled) return;
-        if (res.authenticated && res.username) {
-          setCurrentUser(res.username);
-          setCurrentRole(res.role === 'admin' ? 'admin' : 'developer');
-          setIsAuthenticated(true);
-          localStorage.setItem('currentUser', res.username);
-        } else {
-          setIsAuthenticated(false);
-          setCurrentUser('');
-          setCurrentRole('developer');
-          localStorage.removeItem('currentUser');
-        }
+        applyMeResponse(res);
       } catch {
         if (cancelled) return;
         setIsAuthenticated(false);
         setCurrentUser('');
+        setSessionFullName(null);
+        setSessionAvatarGradient(DEFAULT_AVATAR_GRADIENT_ID);
+        setSessionAvatarImage(null);
         setCurrentRole('developer');
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -121,9 +143,21 @@ export default function App() {
     };
   }, []);
 
+  const refreshSession = async () => {
+    try {
+      const res = await api.me();
+      applyMeResponse(res);
+    } catch {
+      /* keep prior session */
+    }
+  };
+
   const handleLogout = () => {
     setIsAuthenticated(false);
     setCurrentUser('');
+    setSessionFullName(null);
+    setSessionAvatarGradient(DEFAULT_AVATAR_GRADIENT_ID);
+    setSessionAvatarImage(null);
     setCurrentRole('developer');
     localStorage.removeItem('currentUser');
     api.logout().catch(() => {});
@@ -131,7 +165,10 @@ export default function App() {
 
   const handleUserUpdate = (newUsername: string) => {
     setCurrentUser(newUsername);
+    localStorage.setItem('currentUser', newUsername);
   };
+
+  const sessionDisplayName = displayNameForSelf(sessionFullName, currentUser);
 
   const handleAuthed = (username: string) => {
     setCurrentUser(username);
@@ -167,9 +204,13 @@ export default function App() {
             isAuthenticated ? (
               <Dashboard
                 currentUser={currentUser}
+                sessionDisplayName={sessionDisplayName}
+                sessionAvatarGradient={sessionAvatarGradient}
+                sessionAvatarImage={sessionAvatarImage}
                 currentRole={currentRole}
                 onLogout={handleLogout}
                 onUserUpdate={handleUserUpdate}
+                onSessionRefresh={refreshSession}
               />
             ) : (
               <Navigate to="/login" replace />
