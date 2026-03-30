@@ -123,18 +123,19 @@ export function Home() {
               {topPriorityBugs.map((bug, index) => (
                 <motion.button
                   key={bug.id}
+                  type="button"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
                   onClick={() => onBugClick(bug)}
-                  className={`w-full rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer ${getPriorityColor(bug.priority)}`}
+                  className={`w-full text-left rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer ${getPriorityColor(bug.priority)}`}
                 >
                   <div className="p-4 sm:p-5">
                     {/* Mobile Layout */}
                     <div className="sm:hidden">
                       <div className="flex items-start gap-3 mb-3">
                         <Circle className="w-4 h-4 fill-red-500 text-red-500 flex-shrink-0 mt-1" />
-                        <div className="flex-1 min-w-0">
+                        <div className="min-w-0 flex-1 text-left">
                           <p className="font-bold text-gray-900 text-base leading-tight mb-2">{bug.title}</p>
                           <div className="flex flex-wrap items-center gap-2">
                             <p className="text-xs text-gray-600 font-medium">{bug.bugNumber}</p>
@@ -159,12 +160,12 @@ export function Home() {
                     </div>
 
                     {/* Desktop Layout */}
-                    <div className="hidden sm:flex sm:items-center sm:justify-between">
-                      <div className="flex items-center gap-4">
+                    <div className="hidden sm:flex sm:items-center sm:justify-between sm:gap-6">
+                      <div className="flex min-w-0 flex-1 items-center justify-start gap-4">
                         <Circle className="w-4 h-4 fill-red-500 text-red-500 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
+                        <div className="min-w-0 text-left">
                           <p className="font-bold text-gray-900 text-lg">{bug.title}</p>
-                          <div className="flex items-center gap-3 mt-1">
+                          <div className="flex flex-wrap items-center gap-3 mt-1">
                             <p className="text-sm text-gray-600 font-medium">{bug.bugNumber}</p>
                             <span className={`px-3 py-1 rounded-lg font-bold text-xs ${getPriorityBadgeColor(bug.priority)}`}>
                               {bug.priority.charAt(0).toUpperCase() + bug.priority.slice(1)}
@@ -173,7 +174,7 @@ export function Home() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-6">
+                      <div className="flex flex-shrink-0 items-center gap-6">
                         <span className="text-sm font-bold text-gray-700">{getStatusText(bug)}</span>
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center shadow-md">
