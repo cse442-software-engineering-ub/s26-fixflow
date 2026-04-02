@@ -18,10 +18,8 @@ export function PrioritizedBugs() {
   // Prefer active bugs; if there are none, fall back to all bugs so the page is never empty.
   const activeOnly = bugs.filter((bug) => bug.status === 'active');
 
-  const normalizePriority = (p: string) => {
-    const key = p.trim().toLowerCase();
-    return key === 'high' || key === 'medium' || key === 'low' ? key : 'low';
-  };
+  const normalizePriority = (p: string) =>
+    p === 'high' || p === 'medium' || p === 'low' ? p : 'low';
 
   const baseForPrioritization = activeOnly.length > 0 ? activeOnly : bugs;
 
