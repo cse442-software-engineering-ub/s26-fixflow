@@ -24,29 +24,43 @@ export function BugHistory() {
     )
   ).sort();
 
+  const activityTime = (date: string | undefined, fallback: string) =>
+    new Date(date || fallback).getTime();
+
   const allBugsWithActivity = bugs
     .filter(bug => !userFilter || bug.assignedTo === userFilter)
-    .map(bug => ({
-      ...bug,
-      activities: [
-        {
-          type: 'created',
-          date: bug.createdAt,
-          description: 'Bug created',
-        },
-        ...((bug.fixedAt || bug.status === 'fixed') ? [{
-          type: 'fixed',
-          date: bug.fixedAt || '',
-          description: bug.fixDetails
-            ? `Fixed by ${bug.fixDetails.fixedBy}: ${bug.fixDetails.description}`
-            : `Fixed by ${bug.assignedTo || 'Unknown'}: ${bug.description?.trim() ? bug.description : 'No fix details were recorded'}`,
-        }] : []),
-      ].sort((a, b) => {
-        const aDate = a.date || bug.createdAt;
-        const bDate = b.date || bug.createdAt;
-        return new Date(bDate).getTime() - new Date(aDate).getTime();
-      }),
-    }))
+    .map(bug => {
+      const fixedAtResolved =
+        bug.fixedAt || (bug.fixDetails && bug.fixDetails.fixedAt) || '';
+      const showFixed =
+        Boolean(fixedAtResolved) || bug.status === 'fixed';
+      return {
+        ...bug,
+        activities: [
+          {
+            type: 'created' as const,
+            date: bug.createdAt,
+            description: 'Bug created',
+          },
+          ...(showFixed
+            ? [
+                {
+                  type: 'fixed' as const,
+                  date: fixedAtResolved,
+                  description: bug.fixDetails
+                    ? `Fixed by ${bug.fixDetails.fixedBy}: ${bug.fixDetails.description}`
+                    : `Fixed by ${bug.assignedTo || 'Unknown'}: ${bug.description?.trim() ? bug.description : 'No fix details were recorded'}`,
+                },
+              ]
+            : []),
+        ].sort((a, b) => {
+          const aT = activityTime(a.date, bug.createdAt);
+          const bT = activityTime(b.date, bug.createdAt);
+          const diff = bT - aT;
+          return sortBy === 'latest' ? diff : -diff;
+        }),
+      };
+    })
     .filter(bug => {
       // Apply status filter
       if (statusFilter === 'fixed') return bug.status === 'fixed';
@@ -54,15 +68,15 @@ export function BugHistory() {
       return true; // 'all' shows everything
     })
     .sort((a, b) => {
-      const latestA = new Date(a.activities[0].date || a.createdAt).getTime();
-      const latestB = new Date(b.activities[0].date || b.createdAt).getTime();
-      
-      // Apply sort order
-      if (sortBy === 'latest') {
-        return latestB - latestA;
-      } else {
-        return latestA - latestB;
-      }
+      const timesA = a.activities.map((act) =>
+        activityTime(act.date, a.createdAt)
+      );
+      const timesB = b.activities.map((act) =>
+        activityTime(act.date, b.createdAt)
+      );
+      const keyA = sortBy === 'latest' ? Math.max(...timesA) : Math.min(...timesA);
+      const keyB = sortBy === 'latest' ? Math.max(...timesB) : Math.min(...timesB);
+      return sortBy === 'latest' ? keyB - keyA : keyA - keyB;
     });
 
   const formatDate = (dateString?: string) => {
@@ -193,11 +207,13 @@ export function BugHistory() {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2 flex-wrap">
                     <h3 className="font-semibold text-lg text-gray-900">{bug.title}</h3>
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${getPriorityColor(bug.priority)}`}>
+                    <span className={`px-2 py-1 rounded text-xs 
+                      font-medium ${getPriorityColor(bug.priority)}`}>
                       {bug.priority.toUpperCase()}
                     </span>
                     {bug.status === 'fixed' && (
-                      <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
+                      <span className="px-2 py-1 rounded
+                       text-xs font-medium bg-green-100 text-green-800">
                         FIXED
                       </span>
                     )}
@@ -207,7 +223,8 @@ export function BugHistory() {
                   <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                     <div className="flex items-center gap-2">
                       <Code className="w-4 h-4 flex-shrink-0" />
-                      <code className="text-xs bg-gray-50 px-2 py-1 rounded break-all">{bug.code}</code>
+                      <code className="text-xs bg-gray-50 px-2 
+                      py-1 rounded break-all">{bug.code}</code>
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 flex-shrink-0" />
@@ -224,7 +241,8 @@ export function BugHistory() {
               </div>
 
               <div className="border-t border-gray-200 pt-4">
-                <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <h4 className="text-sm font-semibold text-gray-700 
+                mb-3 flex items-center gap-2">
                   <Clock className="w-4 h-4" />
                   Activity Timeline
                 </h4>
