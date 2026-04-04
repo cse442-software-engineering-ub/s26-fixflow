@@ -32,13 +32,13 @@ $sql = "
         b.created_at,
         b.due_date,
         u.username AS assignedTo,
-        '' AS code,
-        '' AS description
+        b.code,
+        b.description
     FROM bugs b
     LEFT JOIN users u ON b.assigned_user_id = u.id
 ";
 
-$clauses = [];
+$clauses = ["b.deleted_at IS NULL"];
 $params = [];
 
 if ($status !== "") {
@@ -86,4 +86,4 @@ try {
     http_response_code(500);
     echo json_encode(["success" => false, "message" => "Query failed"]);
 }
-
+//added backend sql code for edit bug UI in phpMyAdmin (no changes in php files were required)

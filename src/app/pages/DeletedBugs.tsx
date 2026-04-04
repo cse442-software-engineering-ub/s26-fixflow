@@ -1,22 +1,52 @@
+import { useState } from 'react';
 import { useOutletContext } from 'react-router';
 import { Bug } from '../types';
-import { Trash2, RotateCcw, AlertCircle, Calendar, Code, User, X, MessageSquare } from 'lucide-react';
+import { Trash2, RotateCcw, AlertCircle, Calendar, Code, User, X, MessageSquare, Filter, Search } from 'lucide-react';
 import { motion } from 'motion/react';
+import { UserSelectWithSearch } from '../components/UserSelectWithSearch';
+
+export type DeletedBug = Bug & { deletedAt?: string; deletedBy?: string; deletionReason?: string };
 
 interface OutletContext {
   deletedBugs: Bug[];
-  onRestore: (id: string) => void;
+  allUsers?: string[];
+  onRestore: (bug: DeletedBug) => void;
   onPermanentlyDelete: (id: string) => void;
 }
 
 export function DeletedBugs() {
-  const { deletedBugs, onRestore, onPermanentlyDelete } = useOutletContext<OutletContext>();
+  const { deletedBugs, allUsers = [], onRestore, onPermanentlyDelete } = useOutletContext<OutletContext>();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterDeletedBy, setFilterDeletedBy] = useState<string>('all');
 
-  const sortedDeletedBugs = [...deletedBugs].sort((a, b) => {
+  const allDeletedByUsers = Array.from(
+    new Set(
+      deletedBugs
+        .map((b) => (b as DeletedBug).deletedBy)
+        .filter((u): u is string => !!u)
+    )
+  ).sort();
+  const selectableDeletedByUsers = Array.from(new Set([...allUsers, ...allDeletedByUsers])).sort();
+
+  const filteredBugs = deletedBugs.filter((bug) => {
+    const d = bug as DeletedBug;
+    const matchesSearch =
+      !searchTerm.trim() ||
+      bug.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bug.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bug.bugNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(bug.id).includes(searchTerm);
+    const matchesDeletedBy = filterDeletedBy === 'all' || d.deletedBy === filterDeletedBy;
+    return matchesSearch && matchesDeletedBy;
+  });
+
+  const sortedDeletedBugs = [...filteredBugs].sort((a, b) => {
     const dateA = (a as any).deletedAt ? new Date((a as any).deletedAt).getTime() : 0;
     const dateB = (b as any).deletedAt ? new Date((b as any).deletedAt).getTime() : 0;
     return dateB - dateA; // Most recently deleted first
   });
+  const selectedUserHasDeletedBugs =
+    filterDeletedBy !== 'all' && deletedBugs.some((b) => (b as DeletedBug).deletedBy === filterDeletedBy);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -38,6 +68,13 @@ export function DeletedBugs() {
     }
   };
 
+  const trashCountText =
+    deletedBugs.length === 0
+      ? '0 bugs in trash'
+      : deletedBugs.length === 1
+        ? '1 bug in trash'
+        : `${deletedBugs.length} bugs in trash`;
+
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -50,12 +87,53 @@ export function DeletedBugs() {
             <Trash2 className="w-6 h-6 sm:w-8 sm:h-8" />
             <h2 className="text-3xl sm:text-4xl font-bold">Deleted Bugs</h2>
           </div>
-          <p className="text-slate-300 text-base sm:text-lg">
-            {deletedBugs.length} {deletedBugs.length === 1 ? 'bug' : 'bugs'} in trash
-          </p>
+          <p className="text-slate-300 text-base sm:text-lg">{trashCountText}</p>
         </motion.div>
 
-        {deletedBugs.length === 0 ? (
+        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <Filter className="w-5 h-5 text-gray-600" />
+            <h3 className="font-semibold text-gray-900">Filters</h3>
+          </div>
+
+          <div className="flex flex-wrap gap-4 mb-4 ml-0 sm:ml-8">
+            <div className="w-full sm:flex-1 sm:min-w-[200px]">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Search
+              </label>
+              <div className="relative">
+                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Bug title, ID, or description..."
+                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 text-sm font-medium bg-white text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-800 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <div className="w-full sm:w-56">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Deleted By
+              </label>
+              <UserSelectWithSearch
+                users={selectableDeletedByUsers}
+                value={filterDeletedBy}
+                onChange={setFilterDeletedBy}
+                allOptionValue="all"
+                allOptionLabel="All Users"
+              />
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-gray-200">
+            <p className="text-sm text-gray-600">
+              Showing <span className="font-semibold text-gray-900">{filteredBugs.length}</span> {filteredBugs.length === 1 ? 'bug' : 'bugs'}
+            </p>
+          </div>
+        </div>
+
+        {filteredBugs.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -64,8 +142,20 @@ export function DeletedBugs() {
             <div className="inline-flex items-center justify-center w-24 h-24 bg-gray-100 rounded-full mb-4">
               <Trash2 className="w-12 h-12 text-gray-400" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">Trash is empty</h3>
-            <p className="text-gray-600 text-lg">Deleted bugs will appear here</p>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              {deletedBugs.length === 0
+                ? 'Trash is empty'
+                : filterDeletedBy !== 'all' && !selectedUserHasDeletedBugs
+                  ? `${filterDeletedBy} hasn't deleted any bugs`
+                  : 'No bugs found'}
+            </h3>
+            <p className="text-gray-600 text-lg">
+              {deletedBugs.length === 0
+                ? 'Deleted bugs will appear here'
+                : filterDeletedBy !== 'all' && !selectedUserHasDeletedBugs
+                  ? 'Try selecting another user or All Users'
+                  : 'Try adjusting your search or filter'}
+            </p>
           </motion.div>
         ) : (
           <div className="space-y-6">
@@ -73,7 +163,7 @@ export function DeletedBugs() {
               <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="text-sm text-blue-900">
-                  <strong>Note:</strong> Deleted bugs are stored here temporarily. You can restore them or permanently delete them. Permanently deleted bugs cannot be recovered.
+                  <strong>Note:</strong> Deleted bugs are stored temporarily. Restore them anytime, or use Delete Forever to remove them permanently (that cannot be undone).
                 </p>
               </div>
             </div>
@@ -90,9 +180,6 @@ export function DeletedBugs() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2 flex-wrap">
                       <h3 className="font-semibold text-lg text-gray-900">{bug.title}</h3>
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${getPriorityColor(bug.priority)}`}>
-                        {bug.priority.toUpperCase()}
-                      </span>
                       {bug.status === 'fixed' && (
                         <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
                           WAS FIXED
@@ -100,39 +187,62 @@ export function DeletedBugs() {
                       )}
                     </div>
                     <p className="text-sm text-gray-600 mb-3">{bug.bugNumber}</p>
-                    
-                    <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-3">
-                      <div className="flex items-center gap-2">
-                        <Code className="w-4 h-4 flex-shrink-0" />
-                        <code className="text-xs bg-gray-50 px-2 py-1 rounded break-all">{bug.code}</code>
+
+                    <dl className="grid gap-2 text-sm text-gray-700 mb-3">
+                      <div className="flex flex-wrap items-baseline gap-2">
+                        <dt className="text-gray-500 font-medium">Priority</dt>
+                        <dd className="m-0">
+                          <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${getPriorityColor(bug.priority)}`}>
+                            {bug.priority.toUpperCase()}
+                          </span>
+                        </dd>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 flex-shrink-0" />
-                        <span>Due: {new Date(bug.dueDate).toLocaleDateString()}</span>
+                      <div className="flex flex-wrap items-start gap-2">
+                        <dt className="text-gray-500 font-medium shrink-0">Due date</dt>
+                        <dd className="m-0 flex items-center gap-2 min-w-0">
+                          <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          {new Date(bug.dueDate).toLocaleDateString()}
+                        </dd>
+                      </div>
+                      <div className="flex flex-wrap items-start gap-2">
+                        <dt className="text-gray-500 font-medium shrink-0">Code reference</dt>
+                        <dd className="m-0 min-w-0 flex items-start gap-2">
+                          <Code className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                          <code className="text-xs bg-gray-50 px-2 py-1 rounded break-all">{bug.code}</code>
+                        </dd>
                       </div>
                       {bug.assignedTo && (
-                        <div className="flex items-center gap-2">
-                          <User className="w-4 h-4 flex-shrink-0" />
-                          <span>{bug.assignedTo}</span>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <dt className="text-gray-500 font-medium">Assigned to</dt>
+                          <dd className="m-0 flex items-center gap-2">
+                            <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                            {bug.assignedTo}
+                          </dd>
                         </div>
                       )}
-                    </div>
+                    </dl>
 
-                    {(bug as any).deletedAt && (
-                      <p className="text-xs text-red-600 font-medium">
-                        Deleted on {formatDate((bug as any).deletedAt)}
-                        {(bug as any).deletedBy && (
-                          <> by <span className="font-bold">{(bug as any).deletedBy}</span></>
+                    {(bug as DeletedBug).deletedAt && (
+                      <div className="space-y-1 text-xs text-gray-700 mb-2">
+                        <p>
+                          <span className="font-medium text-gray-600">Deletion date: </span>
+                          <span className="text-red-700">{formatDate((bug as DeletedBug).deletedAt!)}</span>
+                        </p>
+                        {(bug as DeletedBug).deletedBy && (
+                          <p>
+                            <span className="font-medium text-gray-600">Deleted by: </span>
+                            <span className="font-semibold text-gray-900">{(bug as DeletedBug).deletedBy}</span>
+                          </p>
                         )}
-                      </p>
+                      </div>
                     )}
 
-                    {(bug as any).deletionReason && (
-                      <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
-                        <MessageSquare className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
-                        <div className="flex-1">
-                          <p className="text-xs font-semibold text-amber-900 mb-1">Deletion Reason:</p>
-                          <p className="text-sm text-amber-800">{(bug as any).deletionReason}</p>
+                    {(bug as DeletedBug).deletionReason && (
+                      <div className="mt-3 bg-amber-50 border-2 border-amber-300 rounded-lg p-3 flex items-start gap-2 shadow-sm">
+                        <MessageSquare className="w-4 h-4 text-amber-800 flex-shrink-0 mt-0.5" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-amber-900 mb-1">Deletion reason</p>
+                          <p className="text-sm text-amber-950 break-words">{(bug as DeletedBug).deletionReason}</p>
                         </div>
                       </div>
                     )}
@@ -142,7 +252,7 @@ export function DeletedBugs() {
 
                   <div className="flex sm:flex-col gap-2">
                     <button
-                      onClick={() => onRestore(bug.id)}
+                      onClick={() => onRestore(bug)}
                       className="flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all shadow-sm font-medium text-sm flex-1 sm:flex-initial whitespace-nowrap"
                     >
                       <RotateCcw className="w-4 h-4" />

@@ -11,11 +11,14 @@ if (!isset($_SESSION["user_id"]) || !is_numeric($_SESSION["user_id"])) {
 
 require_once(__DIR__ . "/db-connection.php");
 require_once(__DIR__ . "/bug-id-helpers.php");
+require_once(__DIR__ . "/user-profile-helpers.php");
 
 $userId = (int)$_SESSION["user_id"];
 
+ensureUserAvatarColumns($pdo);
+
 // Get user profile (PDO; include created_at for "Member Since")
-$stmt = $pdo->prepare("SELECT id, full_name, email, username, created_at FROM users WHERE id = ?");
+$stmt = $pdo->prepare("SELECT id, full_name, email, username, created_at, avatar_gradient, avatar_image FROM users WHERE id = ?");
 $stmt->execute([$userId]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -28,6 +31,12 @@ if (!$user) {
 $user["name"] = $user["full_name"] ?? "";
 $user["phone"] = $user["phone"] ?? "";
 $user["about_me"] = $user["about_me"] ?? "";
+if (!isset($user["avatar_gradient"]) || $user["avatar_gradient"] === "" || $user["avatar_gradient"] === null) {
+    $user["avatar_gradient"] = "gradient-blue";
+}
+if (!isset($user["avatar_image"]) || $user["avatar_image"] === "") {
+    $user["avatar_image"] = null;
+}
 
 // Get assigned bugs
 try {

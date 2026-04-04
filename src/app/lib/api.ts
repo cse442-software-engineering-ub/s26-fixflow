@@ -68,7 +68,15 @@ export const api = {
     apiFetch<{ success: boolean; message?: string }>('api/notifications-mark-read.php', { method: 'POST' }),
 
   me: () =>
-    apiFetch<{ authenticated: boolean; user_id?: number; username?: string; role?: 'admin' | 'developer' }>('api/me.php', {
+    apiFetch<{
+      authenticated: boolean;
+      user_id?: number;
+      username?: string;
+      full_name?: string | null;
+      avatar_gradient?: string;
+      avatar_image?: string | null;
+      role?: 'admin' | 'developer';
+    }>('api/me.php', {
       method: 'GET',
     }),
 
@@ -96,6 +104,8 @@ export const api = {
         username: string;
         created_at?: string;
         joinDate?: string;
+        avatar_gradient?: string;
+        avatar_image?: string | null;
       };
       assignedBugs: any[];
     }>(
@@ -103,7 +113,13 @@ export const api = {
       { method: 'GET' }
     ),
 
-  profileUpdate: (updates: { full_name?: string; email?: string; username?: string }) =>
+  profileUpdate: (updates: {
+    full_name?: string;
+    email?: string;
+    username?: string;
+    avatar_gradient?: string;
+    avatar_image?: string | null;
+  }) =>
     apiFetch<{ success: boolean; message?: string }>('api/profile_update.php', {
       method: 'POST',
       body: JSON.stringify(updates),
@@ -122,7 +138,10 @@ export const api = {
     if (options?.sort) params.set('sort', options.sort);
     if (options?.assignedTo) params.set('assignedTo', options.assignedTo);
     const qs = params.toString() ? `?${params.toString()}` : '';
-    return apiFetch<{ success: boolean; bugs: any[] }>(`api/bugs-list.php${qs}`, { method: 'GET' });
+    return apiFetch<{ success: boolean; bugs: any[] }>(`api/bugs-list.php${qs}`, {
+      method: 'GET',
+      cache: 'no-store',
+    });
   },
 
   createBug: (payload: {
@@ -155,8 +174,43 @@ export const api = {
       body: JSON.stringify(payload),
     }),
 
-  deleteBug: (id: number) =>
+  deleteBug: (id: number, reason?: string) =>
     apiFetch<{ success: boolean }>('api/bug-delete.php', {
+      method: 'POST',
+      body: JSON.stringify({ id, reason: reason ?? '' }),
+    }),
+
+  suggestPriority: (payload: { title: string; description: string; code?: string }) =>
+    apiFetch<{
+      success: boolean;
+      priority: 'high' | 'medium' | 'low';
+      explanation: string;
+      provider: string | null;
+      fromCache: boolean;
+      fallback?: boolean;
+    }>('api/suggest-priority.php', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  listDeletedBugs: (sort?: 'newest' | 'oldest') => {
+    const params = new URLSearchParams();
+    if (sort) params.set('sort', sort);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return apiFetch<{ success: boolean; bugs: any[] }>(`api/bugs-deleted-list.php${qs}`, {
+      method: 'GET',
+      cache: 'no-store',
+    });
+  },
+
+  restoreBug: (id: number) =>
+    apiFetch<{ success: boolean }>('api/bug-restore.php', {
+      method: 'POST',
+      body: JSON.stringify({ id }),
+    }),
+
+  permanentDeleteBug: (id: number) =>
+    apiFetch<{ success: boolean }>('api/bug-permanent-delete.php', {
       method: 'POST',
       body: JSON.stringify({ id }),
     }),
@@ -165,6 +219,12 @@ export const api = {
     apiFetch<{ success: boolean; message?: string; demo_code?: number | string }>('api/send-verification-code.php', {
       method: 'POST',
       body: JSON.stringify({ email }),
+    }),
+
+  verifyResetCode: (email: string, code: string) =>
+    apiFetch<{ success: boolean; message?: string }>('api/verify-reset-code.php', {
+      method: 'POST',
+      body: JSON.stringify({ email, code }),
     }),
 
   resetPassword: (email: string, code: string, password: string) =>
@@ -272,4 +332,5 @@ export const api = {
       method: 'GET',
     }),
 };
+
 

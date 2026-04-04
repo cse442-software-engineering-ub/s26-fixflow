@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react';
 import { X, User, Mail, Calendar, Shield, Edit, Lock, Upload, Trash2, ListChecks } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '../lib/api';
+import {
+  DEFAULT_AVATAR_GRADIENT_ID,
+  displayNameForSelf,
+  isPersistedCustomAvatar,
+  normalizeAvatarGradientId,
+} from '../lib/user-display';
 import { activityLogger } from '../lib/activity';
 import type { Bug as BugType } from '../types';
 
@@ -10,11 +16,20 @@ interface AccountModalProps {
   onClose: () => void;
   currentUser: string;
   onUserUpdate?: (newUsername: string) => void;
+  onSessionRefresh?: () => void | Promise<void>;
   bugs?: BugType[];
   onBugSelect?: (bug: BugType) => void;
 }
 
-export function AccountModal({ isOpen, onClose, currentUser, onUserUpdate, bugs = [], onBugSelect }: AccountModalProps) {
+export function AccountModal({
+  isOpen,
+  onClose,
+  currentUser,
+  onUserUpdate,
+  onSessionRefresh,
+  bugs = [],
+  onBugSelect,
+}: AccountModalProps) {
   const [view, setView] = useState<'details' | 'edit' | 'password'>('details');
   const [userInfo, setUserInfo] = useState<any>(null);
   
@@ -22,9 +37,9 @@ export function AccountModal({ isOpen, onClose, currentUser, onUserUpdate, bugs 
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editUsername, setEditUsername] = useState('');
-  const [editAvatar, setEditAvatar] = useState('');
+  const [editGradientId, setEditGradientId] = useState(DEFAULT_AVATAR_GRADIENT_ID);
+  const [editCustomImage, setEditCustomImage] = useState<string | null>(null);
   const [editError, setEditError] = useState('');
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   
   // Change Password State
   const [currentPassword, setCurrentPassword] = useState('');
@@ -35,7 +50,7 @@ export function AccountModal({ isOpen, onClose, currentUser, onUserUpdate, bugs 
 
   // Available avatars
   const avatars = [
-    { id: 'gradient-blue', label: 'Blue Gradient', colors: 'from-blue-500 to-purple-600' },
+    { id: DEFAULT_AVATAR_GRADIENT_ID, label: 'Blue Gradient', colors: 'from-blue-500 to-purple-600' },
     { id: 'gradient-pink', label: 'Pink Gradient', colors: 'from-pink-500 to-rose-600' },
     { id: 'gradient-green', label: 'Green Gradient', colors: 'from-green-500 to-teal-600' },
     { id: 'gradient-orange', label: 'Orange Gradient', colors: 'from-orange-500 to-red-600' },
@@ -50,20 +65,22 @@ export function AccountModal({ isOpen, onClose, currentUser, onUserUpdate, bugs 
       (async () => {
         try {
           const res = await api.profileGet();
+          const u = res.user;
+          const gradient = normalizeAvatarGradientId(u.avatar_gradient);
+          const custom = u.avatar_image || null;
           const user = {
-            ...res.user,
-            // UI expects these optional fields sometimes
-            name: res.user.name || res.user.full_name || res.user.username,
-            joinDate: res.user.joinDate || res.user.created_at,
+            ...u,
+            joinDate: u.joinDate || u.created_at,
             role: 'Developer',
-            avatar: 'gradient-blue',
+            avatar_gradient: gradient,
+            avatar_image: custom,
           };
           setUserInfo(user);
-          setEditName(user.name ?? '');
+          setEditName(u.full_name?.trim() ?? '');
           setEditEmail(user.email);
           setEditUsername(user.username);
-          setEditAvatar(user.avatar || 'gradient-blue');
-          setUploadedImage(null);
+          setEditGradientId(gradient);
+          setEditCustomImage(custom);
         } catch (e: any) {
           toast.error(e?.message || 'Failed to load profile');
           setUserInfo(null);
@@ -89,35 +106,35 @@ export function AccountModal({ isOpen, onClose, currentUser, onUserUpdate, bugs 
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
+    const okTypes = ['image/jpeg', 'image/png'];
+    if (!okTypes.includes(file.type)) {
+      toast.error('Please upload a JPEG or PNG image');
+      e.target.value = '';
       return;
     }
 
     // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast.error('Image size must be less than 2MB');
+      e.target.value = '';
       return;
     }
 
-    // Convert to base64
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64String = reader.result as string;
-      setUploadedImage(base64String);
-      setEditAvatar(base64String);
+      setEditCustomImage(base64String);
       toast.success('Image uploaded successfully!');
     };
     reader.onerror = () => {
-      toast.error('Failed to upload image');
+      toast.error('Failed to read image');
     };
     reader.readAsDataURL(file);
+    e.target.value = '';
   };
 
   const removeUploadedImage = () => {
-    setUploadedImage(null);
-    setEditAvatar('gradient-blue');
+    setEditCustomImage(null);
     toast.info('Switched back to gradient avatar');
   };
 
@@ -128,9 +145,11 @@ export function AccountModal({ isOpen, onClose, currentUser, onUserUpdate, bugs 
     (async () => {
       try {
         const res = await api.profileUpdate({
-          full_name: editName || undefined,
+          full_name: editName.trim(),
           email: editEmail,
           username: editUsername,
+          avatar_gradient: editGradientId,
+          avatar_image: editCustomImage,
         });
 
         if (!res.success) {
@@ -141,26 +160,34 @@ export function AccountModal({ isOpen, onClose, currentUser, onUserUpdate, bugs 
         }
 
         const updated = await api.profileGet();
+        const u = updated.user;
+        const gradient = normalizeAvatarGradientId(u.avatar_gradient);
+        const custom = u.avatar_image || null;
         const user = {
-          ...updated.user,
-          name: updated.user.name || updated.user.full_name || updated.user.username,
-          joinDate: updated.user.joinDate || updated.user.created_at,
+          ...u,
+          joinDate: u.joinDate || u.created_at,
           role: 'Developer',
-          avatar: 'gradient-blue',
+          avatar_gradient: gradient,
+          avatar_image: custom,
         };
         setUserInfo(user);
+        setEditName(u.full_name?.trim() ?? '');
+        setEditEmail(u.email);
+        setEditUsername(u.username);
+        setEditGradientId(gradient);
+        setEditCustomImage(custom);
 
         if (onUserUpdate && editUsername && editUsername !== currentUser) {
-          localStorage.setItem('currentUser', editUsername);
           onUserUpdate(editUsername);
         }
+        await onSessionRefresh?.();
 
         setView('details');
         toast.success('Profile updated successfully!');
 
         activityLogger.logActivity({
           type: 'profile_updated',
-          user: currentUser,
+          user: editUsername,
         });
       } catch (e: any) {
         const msg = e?.message || 'Failed to update profile';
@@ -240,17 +267,21 @@ export function AccountModal({ isOpen, onClose, currentUser, onUserUpdate, bugs 
             <>
               {/* Profile Section */}
               <div className="flex items-center gap-4 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
-                {userInfo.avatar && userInfo.avatar.startsWith('data:image') ? (
+                {isPersistedCustomAvatar(userInfo.avatar_image) ? (
                   <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-blue-500">
-                    <img src={userInfo.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                    <img src={userInfo.avatar_image} alt="Avatar" className="w-full h-full object-cover" />
                   </div>
                 ) : (
-                  <div className={`w-20 h-20 bg-gradient-to-br ${getAvatarColors(userInfo.avatar || 'gradient-blue')} rounded-full flex items-center justify-center`}>
+                  <div
+                    className={`w-20 h-20 bg-gradient-to-br ${getAvatarColors(normalizeAvatarGradientId(userInfo.avatar_gradient))} rounded-full flex items-center justify-center`}
+                  >
                     <User className="w-10 h-10 text-white" />
                   </div>
                 )}
                 <div>
-                  <h3 className="text-2xl font-bold">{userInfo.name || userInfo.username}</h3>
+                  <h3 className="text-2xl font-bold">
+                    {displayNameForSelf(userInfo.full_name, userInfo.username)}
+                  </h3>
                   <p className="text-gray-600">{userInfo.username} · {userInfo.role || 'Developer'}</p>
                 </div>
               </div>
@@ -260,12 +291,12 @@ export function AccountModal({ isOpen, onClose, currentUser, onUserUpdate, bugs 
                 <h4 className="font-bold text-lg">Account Information</h4>
                 
                 <div className="space-y-3">
-                  {userInfo.name && (
+                  {userInfo.full_name?.trim() && (
                     <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
                       <User className="w-5 h-5 text-gray-600" />
                       <div>
-                        <p className="text-sm text-gray-500">Name</p>
-                        <p className="font-medium">{userInfo.name}</p>
+                        <p className="text-sm text-gray-500">Display name</p>
+                        <p className="font-medium">{userInfo.full_name.trim()}</p>
                       </div>
                     </div>
                   )}
@@ -394,10 +425,10 @@ export function AccountModal({ isOpen, onClose, currentUser, onUserUpdate, bugs 
                 {/* Upload Custom Image */}
                 <div className="mb-4">
                   <label className="block text-xs text-gray-600 mb-2">Upload Custom Image</label>
-                  {uploadedImage ? (
+                  {editCustomImage ? (
                     <div className="relative inline-block">
                       <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-blue-500">
-                        <img src={uploadedImage} alt="Avatar" className="w-full h-full object-cover" />
+                        <img src={editCustomImage} alt="Avatar" className="w-full h-full object-cover" />
                       </div>
                       <button
                         type="button"
@@ -413,7 +444,7 @@ export function AccountModal({ isOpen, onClose, currentUser, onUserUpdate, bugs 
                       <input
                         type="file"
                         id="avatar-upload"
-                        accept="image/*"
+                        accept="image/jpeg,image/png"
                         onChange={handleImageUpload}
                         className="hidden"
                       />
@@ -436,11 +467,11 @@ export function AccountModal({ isOpen, onClose, currentUser, onUserUpdate, bugs 
                       <div
                         key={avatar.id}
                         className={`w-16 h-16 bg-gradient-to-br ${avatar.colors} rounded-full cursor-pointer flex items-center justify-center transition-transform hover:scale-110 ${
-                          editAvatar === avatar.id && !uploadedImage ? 'ring-4 ring-blue-500 ring-offset-2' : ''
+                          editGradientId === avatar.id && !editCustomImage ? 'ring-4 ring-blue-500 ring-offset-2' : ''
                         }`}
                         onClick={() => {
-                          setUploadedImage(null);
-                          setEditAvatar(avatar.id);
+                          setEditCustomImage(null);
+                          setEditGradientId(avatar.id);
                         }}
                         title={avatar.label}
                       >
@@ -457,10 +488,12 @@ export function AccountModal({ isOpen, onClose, currentUser, onUserUpdate, bugs 
                   onClick={() => {
                     setView('details');
                     setEditError('');
-                    setEditName(userInfo.name ?? '');
-                    setEditEmail(userInfo.email);
-                    setEditUsername(userInfo.username);
-                    setEditAvatar(userInfo.avatar || 'gradient-blue');
+                    const u = userInfo;
+                    setEditName(u.full_name?.trim() ?? '');
+                    setEditEmail(u.email);
+                    setEditUsername(u.username);
+                    setEditGradientId(normalizeAvatarGradientId(u.avatar_gradient));
+                    setEditCustomImage(u.avatar_image || null);
                   }}
                   className="flex-1 py-3 px-4 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
                 >

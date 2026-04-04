@@ -40,6 +40,12 @@ if (!$existing) {
     exit;
 }
 
+if (array_key_exists("title", $data) && trim((string)$data["title"]) === "") {
+    http_response_code(400);
+    echo json_encode(["success" => false, "message" => "Title is required"]);
+    exit;
+}
+
 // Prepare fields to update (partial update)
 $fields = [];
 $params = [];
@@ -47,6 +53,14 @@ $params = [];
 if (array_key_exists("title", $data)) {
     $fields[] = "title = :title";
     $params[":title"] = trim($data["title"]);
+}
+if (array_key_exists("code", $data)) {
+    $fields[] = "code = :code";
+    $params[":code"] = trim($data["code"]);
+}
+if (array_key_exists("description", $data)) {
+    $fields[] = "description = :description";
+    $params[":description"] = trim($data["description"]);
 }
 if (array_key_exists("priority", $data)) {
     $fields[] = "priority = :priority";
@@ -192,7 +206,9 @@ try {
             b.priority,
             b.created_at,
             b.due_date,
-            u.username AS assignedTo
+            u.username AS assignedTo,
+            b.code,
+            b.description
         FROM bugs b
         LEFT JOIN users u ON b.assigned_user_id = u.id
         WHERE b.id = ?
@@ -209,12 +225,11 @@ try {
             "created_at" => $existing["created_at"],
             "due_date"   => $data["dueDate"] ?? $existing["due_date"],
             "assignedTo" => null,
+            "code"       => $data["code"] ?? ($existing["code"] ?? ""),
+            "description"=> $data["description"] ?? ($existing["description"] ?? ""),
         ];
     }
 
-    // Attach code and description from request if present (not stored in DB)
-    $bug["code"] = $data["code"] ?? "";
-    $bug["description"] = $data["description"] ?? "";
     $bug["bugNumber"] = formatBugNumber(getOrCreateBugNumber($pdo, $id));
     $fixDetails = getFixDetailsForBug($pdo, $id);
     if ($fixDetails !== null) {
@@ -229,4 +244,4 @@ try {
     http_response_code(500);
     echo json_encode(["success" => false, "message" => "Failed to update bug"]);
 }
-
+//added backend sql code for edit bug UI in phpMyAdmin (no changes in php files were required)

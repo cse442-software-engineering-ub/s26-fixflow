@@ -18,8 +18,10 @@ export function PrioritizedBugs() {
   // Prefer active bugs; if there are none, fall back to all bugs so the page is never empty.
   const activeOnly = bugs.filter((bug) => bug.status === 'active');
 
-  const normalizePriority = (p: string) =>
-    p === 'high' || p === 'medium' || p === 'low' ? p : 'low';
+  const normalizePriority = (p: string) => {
+    const key = p.trim().toLowerCase();
+    return key === 'high' || key === 'medium' || key === 'low' ? key : 'low';
+  };
 
   const baseForPrioritization = activeOnly.length > 0 ? activeOnly : bugs;
 
@@ -55,7 +57,9 @@ export function PrioritizedBugs() {
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return 'No due date';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return date.toLocaleDateString('en-US', { month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' });
   };
 
   const getDaysUntilDue = (dueDate: string | undefined) => {
@@ -75,7 +79,8 @@ export function PrioritizedBugs() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8 bg-slate-800 rounded-2xl p-6 sm:p-8 text-white shadow-lg"
         >
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center 
+          sm:justify-between gap-4">
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <Target className="w-8 h-8" />
@@ -85,7 +90,8 @@ export function PrioritizedBugs() {
                 {prioritizedBugs.length} active {prioritizedBugs.length === 1 ? 'bug' : 'bugs'} sorted by severity
               </p>
             </div>
-            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2.5 sm:px-6 sm:py-3 rounded-xl self-start sm:self-auto">
+            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm 
+            px-4 py-2.5 sm:px-6 sm:py-3 rounded-xl self-start sm:self-auto">
               <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
               <span className="font-medium text-sm sm:text-base">High → Medium → Low</span>
             </div>
@@ -99,23 +105,29 @@ export function PrioritizedBugs() {
           transition={{ delay: 0.1 }}
           className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-8"
         >
-          <div className="bg-red-300 rounded-xl p-3 sm:p-4 text-center border border-red-400 shadow-sm">
+          <div className="bg-red-300 rounded-xl p-3 sm:p-4 text-center 
+          border border-red-400 shadow-sm">
             <div className="text-2xl sm:text-3xl font-bold text-black">{stats.high}</div>
-            <div className="text-xs sm:text-sm font-bold text-black mt-1">High Priority</div>
+            <div className="text-xs sm:text-sm 
+            font-bold text-black mt-1">High Priority</div>
           </div>
-          <div className="bg-orange-300 rounded-xl p-3 sm:p-4 text-center border border-orange-400 shadow-sm">
+          <div className="bg-orange-300 rounded-xl p-3 sm:p-4 text-center border 
+          border-orange-400 shadow-sm">
             <div className="text-2xl sm:text-3xl font-bold text-black">{stats.medium}</div>
             <div className="text-xs sm:text-sm font-bold text-black mt-1">Medium Priority</div>
           </div>
-          <div className="bg-green-300 rounded-xl p-3 sm:p-4 text-center border border-green-400 shadow-sm">
+          <div className="bg-green-300 rounded-xl p-3 sm:p-4 text-center border 
+          border-green-400 shadow-sm">
             <div className="text-2xl sm:text-3xl font-bold text-black">{stats.low}</div>
             <div className="text-xs sm:text-sm font-bold text-black mt-1">Low Priority</div>
           </div>
-          <div className="bg-blue-300 rounded-xl p-3 sm:p-4 text-center border border-blue-400 shadow-sm">
+          <div className="bg-blue-300 rounded-xl p-3 sm:p-4 text-center border 
+          border-blue-400 shadow-sm">
             <div className="text-2xl sm:text-3xl font-bold text-black">{stats.total}</div>
             <div className="text-xs sm:text-sm font-bold text-black mt-1">Total Active</div>
           </div>
-          <div className="bg-red-300 rounded-xl p-3 sm:p-4 text-center border border-red-400 shadow-sm col-span-2 sm:col-span-1">
+          <div className="bg-red-300 rounded-xl p-3 sm:p-4 text-center border 
+          border-red-400 shadow-sm col-span-2 sm:col-span-1">
             <div className="text-2xl sm:text-3xl font-bold text-black">{stats.overdue}</div>
             <div className="text-xs sm:text-sm font-bold text-black mt-1">Overdue</div>
           </div>
@@ -162,11 +174,13 @@ export function PrioritizedBugs() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 + index * 0.05 }}
                   onClick={() => onBugClick(bug)}
-                  className={`${getPriorityColor()} rounded-2xl border border-white/70 shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all cursor-pointer overflow-hidden`}
+                  className={`${getPriorityColor()} rounded-2xl border border-white/70 
+                  shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all cursor-pointer overflow-hidden`}
                 >
                   <div className="p-6">
                     {/* Header Section */}
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-5">
+                    <div className="flex flex-col sm:flex-row sm:items-start 
+                    sm:justify-between gap-4 mb-5">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start gap-3 mb-3">
                           <AlertTriangle
@@ -179,7 +193,8 @@ export function PrioritizedBugs() {
                             }`}
                           />
                           <div className="flex-1">
-                            <h3 className="font-bold text-gray-900 text-xl mb-2 break-words">{bug.title}</h3>
+                            <h3 className="font-bold text-gray-900 text-xl mb-2 
+                            break-words">{bug.title}</h3>
                             <div className="flex flex-wrap items-center gap-2.5">
                               <span className="text-xs text-gray-700 font-semibold bg-white/80 border border-gray-200 px-2.5 py-1 rounded-lg">
                                 {bug.bugNumber || `#${bug.id}`}
@@ -201,7 +216,8 @@ export function PrioritizedBugs() {
                       </div>
 
                       {/* Due Date Badge */}
-                      <div className={`flex-shrink-0 px-4 py-3 rounded-xl text-center shadow-sm ${overdue ? 'bg-red-500 text-white' : 'bg-white/80 border border-gray-300'}`}>
+                      <div className={`flex-shrink-0 px-4 py-3 rounded-xl 
+                        text-center shadow-sm ${overdue ? 'bg-red-500 text-white' : 'bg-white/80 border border-gray-300'}`}>
                         <Clock className={`w-5 h-5 mx-auto mb-1 ${overdue ? 'text-white' : 'text-gray-600'}`} />
                         <div className={`text-xs font-bold ${overdue ? 'text-white' : 'text-gray-900'}`}>
                           {overdue

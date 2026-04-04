@@ -14,12 +14,25 @@ import { activityLogger } from '../lib/activity';
 
 interface DashboardProps {
   currentUser: string;
+  sessionDisplayName: string;
+  sessionAvatarGradient: string;
+  sessionAvatarImage: string | null;
   currentRole?: 'admin' | 'developer';
   onLogout: () => void;
   onUserUpdate?: (newUsername: string) => void;
+  onSessionRefresh?: () => void | Promise<void>;
 }
 
-export function Dashboard({ currentUser, currentRole = 'developer', onLogout, onUserUpdate }: DashboardProps) {
+export function Dashboard({
+  currentUser,
+  sessionDisplayName,
+  sessionAvatarGradient,
+  sessionAvatarImage,
+  currentRole = 'developer',
+  onLogout,
+  onUserUpdate,
+  onSessionRefresh,
+}: DashboardProps) {
   const [bugs, setBugs] = useState<Bug[]>([]);
   const [deletedBugs, setDeletedBugs] = useState<Bug[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -51,7 +64,11 @@ export function Dashboard({ currentUser, currentRole = 'developer', onLogout, on
               createdAt: b.created_at,
               fixedAt: b.fixedAt || b.fixed_at || existing?.fixedAt || undefined,
               fixDetails: b.fixDetails || existing?.fixDetails || undefined,
-              assignedTo: b.assignedTo || undefined,
+              assignedTo:
+                b.assignedTo ??
+                b.assignedto ??
+                existing?.assignedTo ??
+                undefined,
             } as Bug;
           });
         });
@@ -61,17 +78,47 @@ export function Dashboard({ currentUser, currentRole = 'developer', onLogout, on
     }
   }
 
+  async function refreshDeletedBugs() {
+    try {
+      const res = await api.listDeletedBugs('newest');
+      if (res.success) {
+        setDeletedBugs(
+          res.bugs.map((b: any) => ({
+            id: b.id,
+            bugNumber: b.bugNumber || `Bug-${b.id}`,
+            title: b.title,
+            code: b.code || '',
+            priority: b.priority,
+            dueDate: b.due_date,
+            description: b.description || '',
+            status: b.status === 'Resolved' || b.status === 'Closed' ? 'fixed' : 'active',
+            createdAt: b.created_at,
+            fixedAt: b.fixedAt || undefined,
+            fixDetails: b.fixDetails,
+            assignedTo: b.assignedTo ?? b.assignedto,
+            deletedAt: b.deleted_at,
+            deletedBy: b.deletedBy,
+            deletionReason: b.deletion_reason,
+          } as Bug & { deletedAt?: string; deletedBy?: string; deletionReason?: string }))
+        );
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   // Load bugs from backend and keep them in sync with short polling
   useEffect(() => {
     let cancelled = false;
 
-    const fetchBugs = async () => {
+    const fetchAll = async () => {
       if (cancelled) return;
       await refreshBugs();
+      await refreshDeletedBugs();
     };
 
-    fetchBugs();
-    const interval = setInterval(fetchBugs, 5000); // poll every 5s
+    fetchAll();
+    const interval = setInterval(fetchAll, 5000); // poll every 5s
 
     return () => {
       cancelled = true;
@@ -183,7 +230,11 @@ export function Dashboard({ currentUser, currentRole = 'developer', onLogout, on
       });
 
       if (!res.success) {
-        toast.error('Failed to update bug');
+        toast.error(
+          'message' in res && typeof (res as { message?: string }).message === 'string'
+            ? (res as { message: string }).message
+            : 'Failed to update bug'
+        );
         return;
       }
 
@@ -220,8 +271,15 @@ export function Dashboard({ currentUser, currentRole = 'developer', onLogout, on
         bugTitle: editingBug.title,
         user: currentUser,
       });
-    } catch {
-      toast.error('Failed to save. Please try again.');
+    } catch (err: unknown) {
+      const msg =
+        err &&
+        typeof err === 'object' &&
+        'message' in err &&
+        typeof (err as { message: unknown }).message === 'string'
+          ? (err as { message: string }).message
+          : 'Failed to save. Please try again.';
+      toast.error(msg);
     }
   };
 
@@ -308,47 +366,71 @@ export function Dashboard({ currentUser, currentRole = 'developer', onLogout, on
 
   const handleConfirmDelete = (reason: string) => {
     if (!bugToDelete) return;
-    const deletedSnapshot = {
-      ...bugToDelete,
-      deletedAt: new Date().toISOString(),
-      deletedBy: currentUser,
-      deletionReason: reason,
-    } as any;
-
-    setDeletedBugs((prev) => [deletedSnapshot, ...prev]);
-    setBugs((prev) => prev.filter((b) => b.id !== bugToDelete.id));
+    const bug = bugToDelete;
+    setBugToDelete(null);
     api
-      .deleteBug(Number(bugToDelete.id))
+      .deleteBug(Number(bug.id), reason)
+      .then(() => {
+        setBugs((prev) => prev.filter((b) => b.id !== bug.id));
+        refreshDeletedBugs();
+        toast.success('Bug deleted successfully!');
+        activityLogger.logActivity({
+          type: 'deleted',
+          bugNumber: bug.bugNumber,
+          bugTitle: bug.title,
+          user: currentUser,
+        });
+      })
       .catch(() => {
-        // Revert local trash/list state if backend delete fails.
-        setDeletedBugs((prev) => prev.filter((b) => b.id !== bugToDelete.id));
-        setBugs((prev) => [bugToDelete, ...prev]);
+        setBugToDelete(bug);
         toast.error('Failed to delete bug.');
       });
-    toast.success('Bug deleted successfully!');
-    
-    activityLogger.logActivity({
-      type: 'deleted',
-      bugNumber: bugToDelete.bugNumber,
-      bugTitle: bugToDelete.title,
-      user: currentUser,
-    });
-    
-    setBugToDelete(null);
   };
 
-  // Deleted bugs are local-only for now.
-  const handleRestoreBug = (id: string) => {
-    const bugToRestore = deletedBugs.find((b) => String(b.id) === String(id));
-    if (!bugToRestore) return;
-    setDeletedBugs((prev) => prev.filter((b) => String(b.id) !== String(id)));
-    setBugs((prev) => [bugToRestore, ...prev]);
-    toast.success('Bug restored successfully!');
+  const handleRestoreBug = (bugFromTrash: Bug) => {
+    const idStr = String(bugFromTrash.id);
+
+    api
+      .restoreBug(Number(bugFromTrash.id))
+      .then(async () => {
+        // Always rehydrate from the row that was clicked (no deletedBugs.find — avoids id mismatch).
+        const rehydrated: Bug = {
+          id: bugFromTrash.id,
+          bugNumber: bugFromTrash.bugNumber || `Bug-${bugFromTrash.id}`,
+          title: bugFromTrash.title,
+          code: bugFromTrash.code || '',
+          priority: bugFromTrash.priority,
+          dueDate: bugFromTrash.dueDate,
+          description: bugFromTrash.description || '',
+          status: bugFromTrash.status,
+          createdAt: bugFromTrash.createdAt,
+          fixedAt: bugFromTrash.fixedAt,
+          fixDetails: bugFromTrash.fixDetails,
+          assignedTo: bugFromTrash.assignedTo,
+        };
+        setBugs((prev) => {
+          const without = prev.filter((b) => String(b.id) !== idStr);
+          return [rehydrated, ...without];
+        });
+        await refreshBugs();
+        await refreshDeletedBugs();
+        toast.success('Bug restored successfully!');
+      })
+      .catch(() => {
+        toast.error('Failed to restore bug.');
+      });
   };
 
   const handlePermanentlyDelete = (id: string) => {
-    setDeletedBugs((prev) => prev.filter((b) => String(b.id) !== String(id)));
-    toast.success('Bug permanently deleted.');
+    api
+      .permanentDeleteBug(Number(id))
+      .then(() => {
+        setDeletedBugs((prev) => prev.filter((b) => String(b.id) !== String(id)));
+        toast.success('Bug permanently deleted.');
+      })
+      .catch(() => {
+        toast.error('Failed to permanently delete bug.');
+      });
   };
 
   const handleEditBug = (bug: Bug) => {
@@ -373,6 +455,9 @@ export function Dashboard({ currentUser, currentRole = 'developer', onLogout, on
       <Navbar 
         onAddBug={() => setShowForm(true)} 
         currentUser={currentUser}
+        sessionDisplayName={sessionDisplayName}
+        sessionAvatarGradient={sessionAvatarGradient}
+        sessionAvatarImage={sessionAvatarImage}
         isAdmin={currentRole === 'admin'}
         onLogout={onLogout}
         onOpenAccount={() => setShowAccountModal(true)}
@@ -386,6 +471,7 @@ export function Dashboard({ currentUser, currentRole = 'developer', onLogout, on
             bugs,
             deletedBugs,
             currentUser,
+            sessionDisplayName,
             allUsers: assignableUsers.map((u) => u.username),
             onToggleStatus: handleToggleStatus, 
             onEdit: handleEditBug, 
@@ -435,6 +521,7 @@ export function Dashboard({ currentUser, currentRole = 'developer', onLogout, on
           onClose={() => setShowAccountModal(false)}
           currentUser={currentUser}
           onUserUpdate={onUserUpdate}
+          onSessionRefresh={onSessionRefresh}
           bugs={bugs}
           onBugSelect={handleBugClick}
         />
