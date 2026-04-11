@@ -132,7 +132,6 @@ export function Landing({ onAuthed }: LandingProps) {
       icon: Activity,
       bg: 'from-sky-50 to-blue-50 border-sky-100',
       iconClass: 'text-sky-800',
-      wide: true,
     },
   ];
 
@@ -191,8 +190,7 @@ export function Landing({ onAuthed }: LandingProps) {
               Track, prioritize, and resolve bugs with clarity and speed.
             </p>
             <p className="text-slate-400 mb-8 sm:mb-10 text-sm sm:text-base leading-relaxed">
-              A focused bug tracker for student teams—see what is urgent, who owns it, and when it is due without losing
-              context in endless threads.
+              FixFlow helps teams manage bug reports, prioritize issues, and keep projects running smoothly.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <button
@@ -220,7 +218,7 @@ export function Landing({ onAuthed }: LandingProps) {
         <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-10 sm:mb-12 text-center sm:text-left">
           What you can do with FixFlow
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
           {features.map((f, i) => {
             const Icon = f.icon;
             return (
@@ -230,17 +228,17 @@ export function Landing({ onAuthed }: LandingProps) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-40px' }}
                 transition={{ delay: i * 0.06 }}
-                className={`rounded-2xl border p-6 sm:p-8 bg-gradient-to-br shadow-sm hover:shadow-md transition-shadow ${
-                  f.bg
-                } ${f.wide ? 'lg:col-span-3' : ''}`}
+                className={`rounded-2xl border p-5 sm:p-6 lg:p-5 bg-gradient-to-br shadow-sm hover:shadow-md transition-shadow ${f.bg}`}
               >
-                <div className="flex items-start gap-4">
-                  <div className={`rounded-xl bg-white/80 p-3 shadow-sm ${f.iconClass}`}>
-                    <Icon className="w-7 h-7" strokeWidth={2} />
+                <div className="flex items-start gap-3 sm:gap-4">
+                  <div className={`rounded-xl bg-white/80 p-3 shadow-sm shrink-0 ${f.iconClass}`}>
+                    <Icon className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2} />
                   </div>
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2">{f.title}</h3>
-                    <p className="text-slate-600 text-sm sm:text-base leading-relaxed">{f.desc}</p>
+                  <div className="min-w-0">
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-1.5 sm:mb-2 leading-snug">
+                      {f.title}
+                    </h3>
+                    <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">{f.desc}</p>
                   </div>
                 </div>
               </motion.div>
@@ -254,8 +252,8 @@ export function Landing({ onAuthed }: LandingProps) {
           <div className="max-w-xl">
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4">How FixFlow helps your team</h2>
             <p className="text-slate-600 leading-relaxed">
-              Replace scattered messages with one place for bug intake, assignment, and follow-up—so deadlines are visible
-              and nothing slips through.
+              FixFlow gives teams a clear, organized way to report, prioritize, and resolve software issues. With
+              real-time visibility into bug status and assignments, everyone stays aligned and accountable.
             </p>
           </div>
           <div
