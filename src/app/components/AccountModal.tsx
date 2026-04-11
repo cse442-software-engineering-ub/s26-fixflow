@@ -1,5 +1,19 @@
 import { useState, useEffect } from 'react';
-import { X, User, Mail, Calendar, Shield, Edit, Lock, Upload, Trash2, ListChecks } from 'lucide-react';
+import {
+  X,
+  User,
+  Mail,
+  Calendar,
+  Shield,
+  Edit,
+  Lock,
+  Upload,
+  Trash2,
+  ListChecks,
+  Eye,
+  EyeOff,
+  Loader2,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '../lib/api';
 import {
@@ -10,6 +24,12 @@ import {
 } from '../lib/user-display';
 import { activityLogger } from '../lib/activity';
 import type { Bug as BugType } from '../types';
+import {
+  AI_KEY_HELPER_TEXT,
+  AI_MODELS_BY_PROVIDER,
+  AI_PROVIDER_OPTIONS,
+  type AiProviderOption,
+} from '../lib/user-ai-key-mock';
 
 interface AccountModalProps {
   isOpen: boolean;
@@ -40,6 +60,17 @@ export function AccountModal({
   const [editGradientId, setEditGradientId] = useState(DEFAULT_AVATAR_GRADIENT_ID);
   const [editCustomImage, setEditCustomImage] = useState<string | null>(null);
   const [editError, setEditError] = useState('');
+
+  // BYOK — AI API Key (mock API until backend exists)
+  const [aiProvider, setAiProvider] = useState<string>('');
+  const [aiModel, setAiModel] = useState<string>('');
+  const [aiKeyInput, setAiKeyInput] = useState('');
+  const [aiShowKey, setAiShowKey] = useState(false);
+  const [aiHasKey, setAiHasKey] = useState(false);
+  const [aiMaskedKey, setAiMaskedKey] = useState<string | null>(null);
+  const [aiLoadingGet, setAiLoadingGet] = useState(false);
+  const [aiSaving, setAiSaving] = useState(false);
+  const [aiRemoving, setAiRemoving] = useState(false);
   
   // Change Password State
   const [currentPassword, setCurrentPassword] = useState('');
@@ -88,6 +119,104 @@ export function AccountModal({
       })();
     }
   }, [isOpen, currentUser]);
+
+  function isAiProvider(v: string): v is AiProviderOption {
+    return (AI_PROVIDER_OPTIONS as readonly string[]).includes(v);
+  }
+
+  useEffect(() => {
+    if (!isOpen || view !== 'edit' || !userInfo) return;
+    let cancelled = false;
+    setAiLoadingGet(true);
+    (async () => {
+      try {
+        const data = await api.userAiKeyGet();
+        if (cancelled) return;
+        setAiHasKey(data.hasKey);
+        setAiProvider(data.provider && isAiProvider(data.provider) ? data.provider : '');
+        setAiModel(data.model ?? '');
+        setAiMaskedKey(data.maskedKey);
+        setAiKeyInput('');
+        setAiShowKey(false);
+      } catch (e: any) {
+        if (!cancelled) toast.error(e?.message || 'Failed to load AI key settings');
+      } finally {
+        if (!cancelled) setAiLoadingGet(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, view, userInfo?.id]);
+
+  const applyAiKeyFromServer = async () => {
+    try {
+      const data = await api.userAiKeyGet();
+      setAiHasKey(data.hasKey);
+      setAiProvider(data.provider && isAiProvider(data.provider) ? data.provider : '');
+      setAiModel(data.model ?? '');
+      setAiMaskedKey(data.maskedKey);
+      setAiKeyInput('');
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const handleAiSaveKey = async () => {
+    if (!aiProvider || !aiModel || !aiKeyInput.trim()) return;
+    setAiSaving(true);
+    try {
+      const res = await api.userAiKeySave({
+        provider: aiProvider,
+        model: aiModel,
+        api_key: aiKeyInput.trim(),
+      });
+      if (!res.success) {
+        toast.error((res as { message?: string }).message || 'Failed to save API key');
+        return;
+      }
+      toast.success('API key saved successfully');
+      await applyAiKeyFromServer();
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to save API key');
+    } finally {
+      setAiSaving(false);
+    }
+  };
+
+  const handleAiRemoveKey = async () => {
+    setAiRemoving(true);
+    try {
+      const res = await api.userAiKeyDelete();
+      if (!res.success) {
+        toast.error((res as { message?: string }).message || 'Failed to remove API key');
+        return;
+      }
+      toast.success('API key removed');
+      setAiHasKey(false);
+      setAiProvider('');
+      setAiModel('');
+      setAiMaskedKey(null);
+      setAiKeyInput('');
+      setAiShowKey(false);
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to remove API key');
+    } finally {
+      setAiRemoving(false);
+    }
+  };
+
+  const aiModelsForProvider =
+    aiProvider && isAiProvider(aiProvider) ? [...AI_MODELS_BY_PROVIDER[aiProvider]] : [];
+
+  const aiKeyPlaceholder = aiHasKey && aiMaskedKey ? aiMaskedKey : 'Paste your API key here';
+  const aiHelperLine =
+    aiProvider && isAiProvider(aiProvider) ? AI_KEY_HELPER_TEXT[aiProvider] : '';
+  const canSaveAiKey =
+    Boolean(aiProvider && aiModel && aiKeyInput.trim() !== '') &&
+    !aiSaving &&
+    !aiRemoving &&
+    !aiLoadingGet;
 
   if (!isOpen || !userInfo) return null;
 
@@ -379,110 +508,226 @@ export function AccountModal({
           )}
 
           {view === 'edit' && (
-            <form onSubmit={handleEditProfile} className="space-y-6">
-              {editError && (
-                <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-                  {editError}
-                </div>
-              )}
+            <div className="space-y-6">
+              <form id="edit-profile-form" onSubmit={handleEditProfile} className="space-y-6">
+                {editError && (
+                  <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                    {editError}
+                  </div>
+                )}
 
-              <div>
-                <label className="block text-sm font-bold mb-2">Display Name (optional)</label>
-                <input
-                  type="text"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 transition-colors"
-                  placeholder="e.g. John Smith"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold mb-2">Username</label>
-                <input
-                  type="text"
-                  value={editUsername}
-                  onChange={(e) => setEditUsername(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 transition-colors"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold mb-2">Email</label>
-                <input
-                  type="email"
-                  value={editEmail}
-                  onChange={(e) => setEditEmail(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 transition-colors"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold mb-2">Avatar</label>
-                
-                {/* Upload Custom Image */}
-                <div className="mb-4">
-                  <label className="block text-xs text-gray-600 mb-2">Upload Custom Image</label>
-                  {editCustomImage ? (
-                    <div className="relative inline-block">
-                      <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-blue-500">
-                        <img src={editCustomImage} alt="Avatar" className="w-full h-full object-cover" />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={removeUploadedImage}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors"
-                        title="Remove image"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="relative">
-                      <input
-                        type="file"
-                        id="avatar-upload"
-                        accept="image/jpeg,image/png"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                      />
-                      <label
-                        htmlFor="avatar-upload"
-                        className="inline-flex items-center gap-2 px-4 py-3 bg-blue-100 text-blue-700 rounded-lg cursor-pointer hover:bg-blue-200 transition-colors"
-                      >
-                        <Upload className="w-5 h-5" />
-                        <span>Upload Image (Max 2MB)</span>
-                      </label>
-                    </div>
-                  )}
-                </div>
-
-                {/* Gradient Options */}
                 <div>
-                  <label className="block text-xs text-gray-600 mb-2">Or Choose a Gradient</label>
-                  <div className="flex flex-wrap gap-3">
-                    {avatars.map((avatar) => (
-                      <div
-                        key={avatar.id}
-                        className={`w-16 h-16 bg-gradient-to-br ${avatar.colors} rounded-full cursor-pointer flex items-center justify-center transition-transform hover:scale-110 ${
-                          editGradientId === avatar.id && !editCustomImage ? 'ring-4 ring-blue-500 ring-offset-2' : ''
-                        }`}
-                        onClick={() => {
-                          setEditCustomImage(null);
-                          setEditGradientId(avatar.id);
-                        }}
-                        title={avatar.label}
-                      >
-                        <User className="w-8 h-8 text-white" />
+                  <label className="block text-sm font-bold mb-2">Display Name (optional)</label>
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 transition-colors"
+                    placeholder="e.g. John Smith"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold mb-2">Username</label>
+                  <input
+                    type="text"
+                    value={editUsername}
+                    onChange={(e) => setEditUsername(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 transition-colors"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold mb-2">Email</label>
+                  <input
+                    type="email"
+                    value={editEmail}
+                    onChange={(e) => setEditEmail(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 transition-colors"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold mb-2">Avatar</label>
+
+                  <div className="mb-4">
+                    <label className="block text-xs text-gray-600 mb-2">Upload Custom Image</label>
+                    {editCustomImage ? (
+                      <div className="relative inline-block">
+                        <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-blue-500">
+                          <img src={editCustomImage} alt="Avatar" className="w-full h-full object-cover" />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={removeUploadedImage}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors"
+                          title="Remove image"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
-                    ))}
+                    ) : (
+                      <div className="relative">
+                        <input
+                          type="file"
+                          id="avatar-upload"
+                          accept="image/jpeg,image/png"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                        />
+                        <label
+                          htmlFor="avatar-upload"
+                          className="inline-flex items-center gap-2 px-4 py-3 bg-blue-100 text-blue-700 rounded-lg cursor-pointer hover:bg-blue-200 transition-colors"
+                        >
+                          <Upload className="w-5 h-5" />
+                          <span>Upload Image (Max 2MB)</span>
+                        </label>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-2">Or Choose a Gradient</label>
+                    <div className="flex flex-wrap gap-3">
+                      {avatars.map((avatar) => (
+                        <div
+                          key={avatar.id}
+                          className={`w-16 h-16 bg-gradient-to-br ${avatar.colors} rounded-full cursor-pointer flex items-center justify-center transition-transform hover:scale-110 ${
+                            editGradientId === avatar.id && !editCustomImage ? 'ring-4 ring-blue-500 ring-offset-2' : ''
+                          }`}
+                          onClick={() => {
+                            setEditCustomImage(null);
+                            setEditGradientId(avatar.id);
+                          }}
+                          title={avatar.label}
+                        >
+                          <User className="w-8 h-8 text-white" />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
+              </form>
+
+              {/* BYOK — AI API Key (mock API) */}
+              <div className="border-t border-gray-200 pt-6 space-y-6">
+                <h3 className="text-lg font-bold text-gray-900">AI API Key</h3>
+
+                {/* Step 1 — Provider */}
+                <div>
+                  <label className="block text-sm font-bold mb-2">Provider</label>
+                  <select
+                    value={aiProvider}
+                    onChange={(e) => {
+                      setAiProvider(e.target.value);
+                      setAiModel('');
+                    }}
+                    disabled={aiLoadingGet}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 transition-colors bg-white disabled:opacity-60"
+                  >
+                    <option value="">Select a provider</option>
+                    {AI_PROVIDER_OPTIONS.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Step 2 — Model */}
+                {aiProvider !== '' && (
+                  <div>
+                    <label className="block text-sm font-bold mb-2">Model</label>
+                    <select
+                      value={aiModel}
+                      onChange={(e) => setAiModel(e.target.value)}
+                      disabled={aiLoadingGet}
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 transition-colors bg-white disabled:opacity-60"
+                    >
+                      <option value="">Select a model</option>
+                      {aiModelsForProvider.map((m) => (
+                        <option key={m} value={m}>
+                          {m}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Step 3 — API key */}
+                {aiProvider !== '' && aiModel !== '' && (
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap mb-2">
+                      <label className="block text-sm font-bold">API key</label>
+                      {aiHasKey && (
+                        <span className="inline-flex items-center rounded-full bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5">
+                          Key saved ✓
+                        </span>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <input
+                        type={aiShowKey ? 'text' : 'password'}
+                        value={aiKeyInput}
+                        onChange={(e) => setAiKeyInput(e.target.value)}
+                        placeholder={aiKeyPlaceholder}
+                        autoComplete="off"
+                        className="w-full px-4 py-3 pr-12 border-2 border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 transition-colors"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setAiShowKey((v) => !v)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-gray-800 rounded-lg"
+                        aria-label={aiShowKey ? 'Hide API key' : 'Show API key'}
+                      >
+                        {aiShowKey ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
+                    {aiHelperLine && (
+                      <p className="text-sm text-gray-600 mt-2">{aiHelperLine}</p>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex flex-col sm:flex-row gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleAiSaveKey}
+                    disabled={!canSaveAiKey}
+                    className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {aiSaving ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Saving…
+                      </>
+                    ) : (
+                      'Save API Key'
+                    )}
+                  </button>
+                  {aiHasKey && (
+                    <button
+                      type="button"
+                      onClick={handleAiRemoveKey}
+                      disabled={aiRemoving || aiSaving}
+                      className="flex-1 py-3 px-4 border-2 border-red-300 text-red-700 rounded-lg font-medium hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {aiRemoving ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Removing…
+                        </>
+                      ) : (
+                        'Remove Key'
+                      )}
+                    </button>
+                  )}
+                </div>
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -494,6 +739,7 @@ export function AccountModal({
                     setEditUsername(u.username);
                     setEditGradientId(normalizeAvatarGradientId(u.avatar_gradient));
                     setEditCustomImage(u.avatar_image || null);
+                    void applyAiKeyFromServer();
                   }}
                   className="flex-1 py-3 px-4 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
                 >
@@ -501,12 +747,13 @@ export function AccountModal({
                 </button>
                 <button
                   type="submit"
+                  form="edit-profile-form"
                   className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
                 >
                   Save Changes
                 </button>
               </div>
-            </form>
+            </div>
           )}
 
           {view === 'password' && (

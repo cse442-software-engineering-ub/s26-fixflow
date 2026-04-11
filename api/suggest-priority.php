@@ -227,7 +227,7 @@ function callOpenAICompatible(string $baseUrl, string $apiKey, string $model, st
 function callGemini(string $apiKey, string $prompt, int $timeoutMs, ?string &$errorOut = null): ?array
 {
     // Gemini: generateContent
-    $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . urlencode($apiKey);
+    $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" . urlencode($apiKey);
     $payload = [
         "contents" => [
             ["parts" => [["text" => $prompt]]],
@@ -288,6 +288,7 @@ function ensureProviderCooldownSession(): void
     }
 
     $defaults = [
+        "cerebras" => 0,
         "nvidia" => 0,
         "openrouter" => 0,
         "gemini" => 0,
@@ -307,6 +308,7 @@ function ensureProviderFailureCountSession(): void
     }
 
     $defaults = [
+        "cerebras" => 0,
         "nvidia" => 0,
         "openrouter" => 0,
         "gemini" => 0,
@@ -459,6 +461,7 @@ if (file_exists($keysFile)) {
 $geminiKey = defined("GEMINI_KEY") ? trim((string)GEMINI_KEY) : "";
 $openRouterKey = defined("OPENROUTER_KEY") ? trim((string)OPENROUTER_KEY) : "";
 $nvidiaKey = defined("NVIDIA_KEY") ? trim((string)NVIDIA_KEY) : "";
+$cerebrasKey = defined("CEREBRAS_KEY") ? trim((string)CEREBRAS_KEY) : "";
 
 $aiResult = null;
 $provider = null;
@@ -469,11 +472,40 @@ ensureProviderFailureCountSession();
 $cooldownCapSeconds = 900; // 15 minutes max backoff
 
 // Provider order:
-// 1) NVIDIA
-// 2) OpenRouter
-// 3) Gemini
+// 1) Cerebras (OpenAI-compatible)
+// 2) NVIDIA
+// 3) OpenRouter
+// 4) Gemini
 
-// 1) NVIDIA
+// 1) Cerebras
+if ($aiResult === null) {
+    if (isProviderCoolingDown("cerebras")) {
+        if ($debug) $attempts[] = ["provider" => "cerebras", "ok" => false, "skipped" => true, "error" => "cooldown_active"];
+    } elseif ($cerebrasKey === "") {
+        $cd = setProviderCooldownWithBackoff("cerebras", 10, $cooldownCapSeconds);
+        if ($debug) $attempts[] = ["provider" => "cerebras", "ok" => false, "error" => "missing_key", "cooldownSeconds" => $cd];
+    } else {
+        $provider = "cerebras";
+        $err = "";
+        $aiResult = callOpenAICompatible(
+            "https://api.cerebras.ai/v1",
+            $cerebrasKey,
+            "llama3.1-8b",
+            $prompt,
+            $timeoutMs,
+            $err
+        );
+        if ($aiResult === null) {
+            $cd = setProviderCooldownWithBackoff("cerebras", 10, $cooldownCapSeconds);
+            if ($debug) $attempts[] = ["provider" => "cerebras", "ok" => false, "error" => ($err ?: "unknown"), "cooldownSeconds" => $cd];
+        } else {
+            resetProviderFailureCount("cerebras");
+            if ($debug) $attempts[] = ["provider" => "cerebras", "ok" => true, "error" => null];
+        }
+    }
+}
+
+// 2) NVIDIA
 if ($aiResult === null) {
     if (isProviderCoolingDown("nvidia")) {
         if ($debug) $attempts[] = ["provider" => "nvidia", "ok" => false, "skipped" => true, "error" => "cooldown_active"];
@@ -502,7 +534,7 @@ if ($aiResult === null) {
     }
 }
 
-// 2) OpenRouter
+// 3) OpenRouter
 if ($aiResult === null) {
     if (isProviderCoolingDown("openrouter")) {
         if ($debug) $attempts[] = ["provider" => "openrouter", "ok" => false, "skipped" => true, "error" => "cooldown_active"];
@@ -515,7 +547,7 @@ if ($aiResult === null) {
         $aiResult = callOpenAICompatible(
             "https://openrouter.ai/api/v1",
             $openRouterKey,
-            "nvidia/nemotron-3-super-120b-a12b:free",
+            "openai/gpt-oss-120b:free",
             $prompt,
             $timeoutMs,
             $err
@@ -530,7 +562,7 @@ if ($aiResult === null) {
     }
 }
 
-// 3) Gemini
+// 4) Gemini
 if ($aiResult === null) {
     if (isProviderCoolingDown("gemini")) {
         if ($debug) $attempts[] = ["provider" => "gemini", "ok" => false, "skipped" => true, "error" => "cooldown_active"];

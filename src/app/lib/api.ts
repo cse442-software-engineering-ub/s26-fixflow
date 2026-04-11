@@ -1,3 +1,9 @@
+import {
+  userAiKeyDeleteMock,
+  userAiKeyGetMock,
+  userAiKeySaveMock,
+} from './user-ai-key-mock';
+
 type ApiError = {
   message: string;
   status?: number;
@@ -130,6 +136,14 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ currentPassword, newPassword }),
     }),
+
+  /** BYOK — mock until `api/user-ai-key.php` exists */
+  userAiKeyGet: () => userAiKeyGetMock(),
+
+  userAiKeySave: (payload: { provider: string; model: string; api_key: string }) =>
+    userAiKeySaveMock(payload),
+
+  userAiKeyDelete: () => userAiKeyDeleteMock(),
 
   // Bugs CRUD
   listBugs: (options?: { status?: string; sort?: 'newest' | 'oldest'; assignedTo?: string }) => {
