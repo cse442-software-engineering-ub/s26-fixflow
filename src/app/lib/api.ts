@@ -1,8 +1,4 @@
-import {
-  userAiKeyDeleteMock,
-  userAiKeyGetMock,
-  userAiKeySaveMock,
-} from './user-ai-key-mock';
+import type { UserAiKeyGetResponse } from './user-ai-key-mock';
 
 type ApiError = {
   message: string;
@@ -137,13 +133,18 @@ export const api = {
       body: JSON.stringify({ currentPassword, newPassword }),
     }),
 
-  /** BYOK — mock until `api/user-ai-key.php` exists */
-  userAiKeyGet: () => userAiKeyGetMock(),
+  /** BYOK — persisted in `user_ai_keys`; see `user-ai-key-mock.ts` for local UI tests only */
+  userAiKeyGet: () =>
+    apiFetch<UserAiKeyGetResponse & { success: boolean }>('api/user-ai-key.php', { method: 'GET' }),
 
   userAiKeySave: (payload: { provider: string; model: string; api_key: string }) =>
-    userAiKeySaveMock(payload),
+    apiFetch<{ success: boolean; message?: string }>('api/user-ai-key.php', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
 
-  userAiKeyDelete: () => userAiKeyDeleteMock(),
+  userAiKeyDelete: () =>
+    apiFetch<{ success: boolean; message?: string }>('api/user-ai-key.php', { method: 'DELETE' }),
 
   // Bugs CRUD
   listBugs: (options?: { status?: string; sort?: 'newest' | 'oldest'; assignedTo?: string }) => {
@@ -202,6 +203,7 @@ export const api = {
       provider: string | null;
       fromCache: boolean;
       fallback?: boolean;
+      byok?: boolean;
     }>('api/suggest-priority.php', {
       method: 'POST',
       body: JSON.stringify(payload),

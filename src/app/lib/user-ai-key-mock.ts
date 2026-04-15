@@ -1,6 +1,7 @@
 /**
- * BYOK mock — replace with real apiFetch to user-ai-key.php when backend exists.
- * Set TEST_SAVED_KEY_UI to true to verify saved-key state (prefill + badge + masked placeholder).
+ * BYOK: provider/model lists + `maskApiKey` must stay in sync with `api/user-ai-key.php`.
+ * Real API: `api.userAiKeyGet` / Save / Delete in `api.ts`.
+ * Use `userAiKeyGetMock` etc. below for isolated UI tests; set TEST_SAVED_KEY_UI to exercise saved-key state.
  */
 export const TEST_SAVED_KEY_UI = false;
 
