@@ -5,8 +5,8 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig(({ command }) => ({
   // In dev, serve at / for localhost.
-  // In build, use the Aptitude subpath.
-  base: command === 'serve' ? '/' : '/CSE442/2026-Spring/cse-442ab/NewFrontend/',
+  // In build, serve from the course deployment folder root.
+  base: command === 'serve' ? '/' : '/CSE442/2026-Spring/cse-442ab/',
   plugins: [
     // The React and Tailwind plugins are both required for Make, even if
     // Tailwind is not being actively used – do not remove them
