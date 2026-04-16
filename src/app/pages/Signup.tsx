@@ -1,3 +1,4 @@
+//Added DarkMode Fam//
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { X } from 'lucide-react';
@@ -10,6 +11,7 @@ interface SignupProps {
   onClose?: () => void;
   onRequestLogin?: () => void;
 }
+
 
 export function Signup({
   onSignup,
@@ -88,7 +90,7 @@ export function Signup({
               onBlur={() => setFocusedField(null)}
               placeholder="Enter Email"
               className={`w-full px-4 sm:px-6 py-3 sm:py-4 text-base sm:text-lg border-2 rounded-full outline-none transition-colors ${
-                focusedField === 'email' ? 'border-blue-400 bg-blue-50' : 'border-gray-300 bg-white'
+                focusedField === 'email' ? 'border-blue-400 bg-blue-50 dark:bg-blue-950' : 'border-gray-300 bg-white dark:bg-[#363d45]'
               }`}
               required
             />
@@ -104,7 +106,7 @@ export function Signup({
               onBlur={() => setFocusedField(null)}
               placeholder="Enter Username"
               className={`w-full px-4 sm:px-6 py-3 sm:py-4 text-base sm:text-lg border-2 rounded-full outline-none transition-colors ${
-                focusedField === 'username' ? 'border-blue-400 bg-blue-50' : 'border-gray-300 bg-white'
+                focusedField === 'username' ? 'border-blue-400 bg-blue-50 dark:bg-blue-950' : 'border-gray-300 bg-white dark:bg-[#363d45]'
               }`}
               required
             />
@@ -120,7 +122,7 @@ export function Signup({
               onBlur={() => setFocusedField(null)}
               placeholder="Enter Password"
               className={`w-full px-4 sm:px-6 py-3 sm:py-4 text-base sm:text-lg border-2 rounded-full outline-none transition-colors ${
-                focusedField === 'password' ? 'border-blue-400 bg-blue-50' : 'border-gray-300 bg-white'
+                focusedField === 'password' ? 'border-blue-400 bg-blue-50 dark:bg-blue-950' : 'border-gray-300 bg-white dark:bg-[#363d45]'
               }`}
               required
             />
@@ -136,7 +138,7 @@ export function Signup({
               onBlur={() => setFocusedField(null)}
               placeholder="Confirm Password"
               className={`w-full px-4 sm:px-6 py-3 sm:py-4 text-base sm:text-lg border-2 rounded-full outline-none transition-colors ${
-                focusedField === 'confirm' ? 'border-blue-400 bg-blue-50' : 'border-gray-300 bg-white'
+                focusedField === 'confirm' ? 'border-blue-400 bg-blue-50 dark:bg-blue-950' : 'border-gray-300 bg-white dark:bg-[#363d45]'
               }`}
               required
             />
@@ -145,7 +147,7 @@ export function Signup({
           <div className="pt-2 sm:pt-4">
             <button
               type="submit"
-              className="w-full py-3 sm:py-4 bg-white border-2 border-black rounded-full text-xl sm:text-2xl font-bold italic hover:bg-gray-50 transition-colors"
+              className="w-full py-3 sm:py-4 bg-white dark:bg-[#363d45] border-2 border-black dark:border-gray-500 dark:text-white rounded-full text-xl sm:text-2xl font-bold italic hover:bg-gray-50 dark:hover:bg-[#3e4650] transition-colors"
             >
               Sign Up
             </button>

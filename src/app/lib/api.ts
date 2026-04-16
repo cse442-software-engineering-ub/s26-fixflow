@@ -1,3 +1,4 @@
+//Added DarkMode Fam//
 import type { UserAiKeyGetResponse } from './user-ai-key-mock';
 
 type ApiError = {
@@ -78,6 +79,7 @@ export const api = {
       avatar_gradient?: string;
       avatar_image?: string | null;
       role?: 'admin' | 'developer';
+      theme_preference?: 'light' | 'dark';
     }>('api/me.php', {
       method: 'GET',
     }),
@@ -346,6 +348,12 @@ export const api = {
   listUsersBasic: () =>
     apiFetch<{ success: boolean; users: Array<{ id: number; username: string; email: string }> }>('api/users-options.php', {
       method: 'GET',
+    }),
+
+  themeUpdate: (theme: 'light' | 'dark') =>
+    apiFetch<{ success: boolean; theme_preference: 'light' | 'dark' }>('api/dark-mode-update.php', {
+      method: 'POST',
+      body: JSON.stringify({ theme_preference: theme }),
     }),
 };
 

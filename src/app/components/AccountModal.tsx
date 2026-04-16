@@ -1,3 +1,4 @@
+//Added DarkMode Fam//
 import { useState, useEffect } from 'react';
 import {
   X,
@@ -13,6 +14,8 @@ import {
   Eye,
   EyeOff,
   Loader2,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '../lib/api';
@@ -30,6 +33,7 @@ import {
   AI_PROVIDER_OPTIONS,
   type AiProviderOption,
 } from '../lib/user-ai-key-mock';
+import { useDarkMode } from '../lib/DarkModeContext';
 
 interface AccountModalProps {
   isOpen: boolean;
@@ -50,6 +54,7 @@ export function AccountModal({
   bugs = [],
   onBugSelect,
 }: AccountModalProps) {
+  const { darkMode, setDarkMode } = useDarkMode();
   const [view, setView] = useState<'details' | 'edit' | 'password'>('details');
   const [userInfo, setUserInfo] = useState<any>(null);
   
@@ -374,9 +379,9 @@ export function AccountModal({
 
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-[#2f353c] dark:text-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+        <div className="sticky top-0 z-10 bg-white dark:bg-[#2f353c] border-b border-gray-200 dark:border-[#3e4650] px-6 py-4 flex items-center justify-between rounded-t-2xl">
           <h2 className="text-2xl font-bold">
             {view === 'details' && 'Account Details'}
             {view === 'edit' && 'Edit Profile'}
@@ -384,7 +389,7 @@ export function AccountModal({
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
           >
             <X className="w-6 h-6" />
           </button>
@@ -395,7 +400,7 @@ export function AccountModal({
           {view === 'details' && (
             <>
               {/* Profile Section */}
-              <div className="flex items-center gap-4 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+              <div className="flex items-center gap-4 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-[#363d45] dark:to-[#3a424b] rounded-xl">
                 {isPersistedCustomAvatar(userInfo.avatar_image) ? (
                   <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-blue-500">
                     <img src={userInfo.avatar_image} alt="Avatar" className="w-full h-full object-cover" />
@@ -411,7 +416,7 @@ export function AccountModal({
                   <h3 className="text-2xl font-bold">
                     {displayNameForSelf(userInfo.full_name, userInfo.username)}
                   </h3>
-                  <p className="text-gray-600">{userInfo.username} · {userInfo.role || 'Developer'}</p>
+                  <p className="text-gray-600 dark:text-gray-400">{userInfo.username} · {userInfo.role || 'Developer'}</p>
                 </div>
               </div>
 
@@ -421,37 +426,78 @@ export function AccountModal({
                 
                 <div className="space-y-3">
                   {userInfo.full_name?.trim() && (
-                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                      <User className="w-5 h-5 text-gray-600" />
+                    <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-[#363d45] rounded-lg">
+                      <User className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                       <div>
-                        <p className="text-sm text-gray-500">Display name</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Display name</p>
                         <p className="font-medium">{userInfo.full_name.trim()}</p>
                       </div>
                     </div>
                   )}
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                    <Mail className="w-5 h-5 text-gray-600" />
+                  <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-[#363d45] rounded-lg">
+                    <Mail className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                     <div>
-                      <p className="text-sm text-gray-500">Email</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Email</p>
                       <p className="font-medium">{userInfo.email}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                    <Calendar className="w-5 h-5 text-gray-600" />
+                  <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-[#363d45] rounded-lg">
+                    <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                     <div>
-                      <p className="text-sm text-gray-500">Member Since</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Member Since</p>
                       <p className="font-medium">{formatDate(userInfo.joinDate)}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                    <Shield className="w-5 h-5 text-gray-600" />
+                  <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-[#363d45] rounded-lg">
+                    <Shield className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                     <div>
-                      <p className="text-sm text-gray-500">Role</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Role</p>
                       <p className="font-medium">{userInfo.role || 'Developer'}</p>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Appearance */}
+              <div className="space-y-3">
+                <h4 className="font-bold text-lg">Appearance</h4>
+                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-[#363d45] rounded-lg">
+                  <div className="flex items-center gap-3">
+                    {darkMode ? (
+                      <Moon className="w-5 h-5 text-indigo-400" />
+                    ) : (
+                      <Sun className="w-5 h-5 text-amber-500" />
+                    )}
+                    <div>
+                      <p className="font-medium">Dark Mode</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {darkMode ? 'Dark theme is active' : 'Light theme is active'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={darkMode}
+                    onClick={() => setDarkMode(!darkMode)}
+                    className={`relative inline-flex h-7 w-[52px] shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
+                      darkMode ? 'bg-indigo-600' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none flex h-5 w-5 items-center justify-center rounded-full bg-white shadow-md ring-0 transition-transform duration-200 ${
+                        darkMode ? 'translate-x-[28px]' : 'translate-x-1'
+                      }`}
+                    >
+                      {darkMode ? (
+                        <Moon className="h-3 w-3 text-indigo-600" />
+                      ) : (
+                        <Sun className="h-3 w-3 text-amber-500" />
+                      )}
+                    </span>
+                  </button>
                 </div>
               </div>
 
@@ -471,10 +517,10 @@ export function AccountModal({
                             onBugSelect?.(bug);
                             onClose();
                           }}
-                          className="w-full text-left px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 border border-gray-200 transition-colors"
+                          className="w-full text-left px-4 py-3 bg-gray-50 dark:bg-[#363d45] rounded-lg hover:bg-gray-100 dark:hover:bg-[#3e4650] border border-gray-200 dark:border-[#3e4650] transition-colors"
                         >
-                          <span className="font-medium text-gray-900">{bug.bugNumber || bug.title}</span>
-                          <span className="text-gray-600 text-sm block truncate">{bug.title}</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{bug.bugNumber || bug.title}</span>
+                          <span className="text-gray-600 dark:text-gray-400 text-sm block truncate">{bug.title}</span>
                           <span className={`text-xs ${bug.status === 'fixed' ? 'text-green-600' : 'text-amber-600'}`}>
                             {bug.status === 'fixed' ? 'Fixed' : 'Active'}
                           </span>
@@ -498,7 +544,7 @@ export function AccountModal({
                 </button>
                 <button 
                   onClick={() => setView('password')}
-                  className="flex-1 py-3 px-4 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 py-3 px-4 bg-gray-200 dark:bg-[#363d45] text-gray-700 dark:text-gray-200 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-[#3e4650] transition-colors flex items-center justify-center gap-2"
                 >
                   <Lock className="w-5 h-5" />
                   Change Password
@@ -522,7 +568,7 @@ export function AccountModal({
                     type="text"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 transition-colors"
+                    className="w-full px-4 py-3 border-2 border-gray-300 dark:border-[#3e4650] dark:bg-[#363d45] dark:text-white rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 dark:focus:bg-[#3a424b] transition-colors"
                     placeholder="e.g. John Smith"
                   />
                 </div>
@@ -533,7 +579,7 @@ export function AccountModal({
                     type="text"
                     value={editUsername}
                     onChange={(e) => setEditUsername(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 transition-colors"
+                    className="w-full px-4 py-3 border-2 border-gray-300 dark:border-[#3e4650] dark:bg-[#363d45] dark:text-white rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 dark:focus:bg-[#3a424b] transition-colors"
                     required
                   />
                 </div>
@@ -544,7 +590,7 @@ export function AccountModal({
                     type="email"
                     value={editEmail}
                     onChange={(e) => setEditEmail(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 transition-colors"
+                    className="w-full px-4 py-3 border-2 border-gray-300 dark:border-[#3e4650] dark:bg-[#363d45] dark:text-white rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 dark:focus:bg-[#3a424b] transition-colors"
                     required
                   />
                 </div>
@@ -612,8 +658,8 @@ export function AccountModal({
               </form>
 
               {/* BYOK — AI API Key (mock API) */}
-              <div className="border-t border-gray-200 pt-6 space-y-6">
-                <h3 className="text-lg font-bold text-gray-900">AI API Key</h3>
+              <div className="border-t border-gray-200 dark:border-[#3e4650] pt-6 space-y-6">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">AI API Key</h3>
 
                 {/* Step 1 — Provider */}
                 <div>
@@ -625,7 +671,7 @@ export function AccountModal({
                       setAiModel('');
                     }}
                     disabled={aiLoadingGet}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 transition-colors bg-white disabled:opacity-60"
+                    className="w-full px-4 py-3 border-2 border-gray-300 dark:border-[#3e4650] dark:bg-[#363d45] dark:text-white rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 dark:focus:bg-[#3a424b] transition-colors bg-white dark:bg-[#363d45] disabled:opacity-60"
                   >
                     <option value="">Select a provider</option>
                     {AI_PROVIDER_OPTIONS.map((p) => (
@@ -644,7 +690,7 @@ export function AccountModal({
                       value={aiModel}
                       onChange={(e) => setAiModel(e.target.value)}
                       disabled={aiLoadingGet}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 transition-colors bg-white disabled:opacity-60"
+                      className="w-full px-4 py-3 border-2 border-gray-300 dark:border-[#3e4650] dark:bg-[#363d45] dark:text-white rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 dark:focus:bg-[#3a424b] transition-colors bg-white dark:bg-[#363d45] disabled:opacity-60"
                     >
                       <option value="">Select a model</option>
                       {aiModelsForProvider.map((m) => (
@@ -674,7 +720,7 @@ export function AccountModal({
                         onChange={(e) => setAiKeyInput(e.target.value)}
                         placeholder={aiKeyPlaceholder}
                         autoComplete="off"
-                        className="w-full px-4 py-3 pr-12 border-2 border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 transition-colors"
+                        className="w-full px-4 py-3 pr-12 border-2 border-gray-300 dark:border-[#3e4650] dark:bg-[#363d45] dark:text-white rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 dark:focus:bg-[#3a424b] transition-colors"
                       />
                       <button
                         type="button"
@@ -741,7 +787,7 @@ export function AccountModal({
                     setEditCustomImage(u.avatar_image || null);
                     void applyAiKeyFromServer();
                   }}
-                  className="flex-1 py-3 px-4 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                  className="flex-1 py-3 px-4 bg-gray-200 dark:bg-[#363d45] text-gray-700 dark:text-gray-200 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-[#3e4650] transition-colors"
                 >
                   Cancel
                 </button>
@@ -776,7 +822,7 @@ export function AccountModal({
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 transition-colors"
+                  className="w-full px-4 py-3 border-2 border-gray-300 dark:border-[#3e4650] dark:bg-[#363d45] dark:text-white rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 dark:focus:bg-[#3a424b] transition-colors"
                   required
                 />
               </div>
@@ -787,7 +833,7 @@ export function AccountModal({
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 transition-colors"
+                  className="w-full px-4 py-3 border-2 border-gray-300 dark:border-[#3e4650] dark:bg-[#363d45] dark:text-white rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 dark:focus:bg-[#3a424b] transition-colors"
                   required
                 />
               </div>
@@ -798,7 +844,7 @@ export function AccountModal({
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 transition-colors"
+                  className="w-full px-4 py-3 border-2 border-gray-300 dark:border-[#3e4650] dark:bg-[#363d45] dark:text-white rounded-lg outline-none focus:border-blue-400 focus:bg-blue-50 dark:focus:bg-[#3a424b] transition-colors"
                   required
                 />
               </div>
@@ -814,7 +860,7 @@ export function AccountModal({
                     setNewPassword('');
                     setConfirmPassword('');
                   }}
-                  className="flex-1 py-3 px-4 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                  className="flex-1 py-3 px-4 bg-gray-200 dark:bg-[#363d45] text-gray-700 dark:text-gray-200 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-[#3e4650] transition-colors"
                 >
                   Cancel
                 </button>

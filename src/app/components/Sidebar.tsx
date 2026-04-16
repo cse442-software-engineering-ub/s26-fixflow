@@ -1,3 +1,4 @@
+//Added DarkMode Fam//
 import { Link, useLocation } from 'react-router';
 import { Plus, List, Users, AlertCircle, History, Zap, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -48,10 +49,10 @@ export function Sidebar({ onAddBug, stats }: SidebarProps) {
   ];
 
   return (
-    <div className="w-80 bg-white border-l border-gray-200 p-4 flex flex-col gap-3 h-full">
+    <div className="w-80 bg-white dark:bg-[#2f353c] border-l border-gray-200 dark:border-[#3e4650] p-4 flex flex-col gap-3 h-full">
       <div className="flex items-center gap-2 mb-1">
         <Zap className="w-5 h-5 text-yellow-500" />
-        <h3 className="font-bold text-gray-900 text-lg">Quick Actions</h3>
+        <h3 className="font-bold text-gray-900 dark:text-white text-lg">Quick Actions</h3>
       </div>
       
       <motion.button
@@ -92,25 +93,25 @@ export function Sidebar({ onAddBug, stats }: SidebarProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="mt-4 pt-4 border-t border-gray-200 space-y-3"
+        className="mt-4 pt-4 border-t border-gray-200 dark:border-[#3e4650] space-y-3"
       >
-        <div className="bg-gray-50 rounded-xl p-3 border border-gray-200">
+        <div className="bg-gray-50 dark:bg-[#363d45] rounded-xl p-3 border border-gray-200 dark:border-[#3e4650]">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-gray-700">Total Bugs:</span>
-            <span className="text-xl font-bold text-slate-800">{stats.total}</span>
+            <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Total Bugs:</span>
+            <span className="text-xl font-bold text-slate-800 dark:text-white">{stats.total}</span>
           </div>
         </div>
         
-        <div className="bg-gray-50 rounded-xl p-3 border border-gray-200">
+        <div className="bg-gray-50 dark:bg-[#363d45] rounded-xl p-3 border border-gray-200 dark:border-[#3e4650]">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-gray-700">Assigned to you:</span>
-            <span className="text-xl font-bold text-slate-800">{stats.assigned}</span>
+            <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Assigned to you:</span>
+            <span className="text-xl font-bold text-slate-800 dark:text-white">{stats.assigned}</span>
           </div>
         </div>
         
-        <div className="bg-gray-50 rounded-xl p-3 border border-gray-200">
+        <div className="bg-gray-50 dark:bg-[#363d45] rounded-xl p-3 border border-gray-200 dark:border-[#3e4650]">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-gray-700">Overdue:</span>
+            <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Overdue:</span>
             <motion.span 
               animate={stats.overdue > 0 ? { scale: [1, 1.1, 1] } : {}}
               transition={{ repeat: Infinity, duration: 2 }}
