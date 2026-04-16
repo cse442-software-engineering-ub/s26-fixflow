@@ -52,7 +52,7 @@ export function BugDetailModal({ bug, onClose, onEdit, onToggleStatus, onDelete 
         <div className="flex items-start justify-between p-6 border-b">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-3">
-              <h2 className="text-2xl font-bold text-gray-900">{bug.title}</h2>
+              <h2 className="text-2xl font-bold text-gray-900 break-all pr-2">{bug.title}</h2>
               {bug.status === 'fixed' ? (
                 <CheckCircle2 className="w-6 h-6 text-green-600" />
               ) : (
@@ -90,11 +90,11 @@ export function BugDetailModal({ bug, onClose, onEdit, onToggleStatus, onDelete 
             <div className="p-2 bg-white rounded-lg shadow-sm">
               <Sparkles className="w-5 h-5 text-purple-600" />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
                 AI Summary Overview
               </h3>
-              <p className="text-gray-700 text-sm leading-relaxed">
+              <p className="text-gray-700 text-sm leading-relaxed break-all">
                 {generateAISummary()}
               </p>
             </div>
@@ -176,7 +176,7 @@ export function BugDetailModal({ bug, onClose, onEdit, onToggleStatus, onDelete 
           <div>
             <h3 className="text-sm font-medium text-gray-500 mb-2">Description</h3>
             <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-gray-900 text-sm leading-relaxed whitespace-pre-wrap">
+              <p className="text-gray-900 text-sm leading-relaxed whitespace-pre-wrap break-words">
                 {bug.description}
               </p>
             </div>

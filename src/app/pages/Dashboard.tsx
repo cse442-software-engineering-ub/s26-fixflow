@@ -33,6 +33,11 @@ export function Dashboard({
   onUserUpdate,
   onSessionRefresh,
 }: DashboardProps) {
+  const getCharacterLimitToastMessage = (msg: string): string =>
+    msg.toLowerCase().includes('characters or fewer')
+      ? 'Character limit exceeded'
+      : msg;
+
   const [bugs, setBugs] = useState<Bug[]>([]);
   const [deletedBugs, setDeletedBugs] = useState<Bug[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -210,8 +215,15 @@ export function Dashboard({
         bugTitle: newBug.title,
         user: currentUser,
       });
-    } catch {
-      toast.error('Failed to save. Please try again.');
+    } catch (err: unknown) {
+      const msg =
+        err &&
+        typeof err === 'object' &&
+        'message' in err &&
+        typeof (err as { message: unknown }).message === 'string'
+          ? (err as { message: string }).message
+          : 'Failed to save. Please try again.';
+      toast.error(getCharacterLimitToastMessage(msg));
     }
   };
 
@@ -279,7 +291,7 @@ export function Dashboard({
         typeof (err as { message: unknown }).message === 'string'
           ? (err as { message: string }).message
           : 'Failed to save. Please try again.';
-      toast.error(msg);
+      toast.error(getCharacterLimitToastMessage(msg));
     }
   };
 
