@@ -29,8 +29,37 @@ $description = trim($data["description"] ?? "");
 $status      = $data["status"] ?? "active";
 $assignedTo  = $data["assignedTo"] ?? null; // username or null
 
+$TITLE_MAX_LENGTH = 80;
+$CODE_MAX_LENGTH = 300;
+$DESCRIPTION_MAX_LENGTH = 1000;
+
+$charLength = static function (string $text): int {
+    if (function_exists("mb_strlen")) {
+        return mb_strlen($text, "UTF-8");
+    }
+    return strlen($text);
+};
+
 if ($title === "" || $code === "" || $description === "" || !$dueDate) {
     echo json_encode(["success" => false, "message" => "Missing required fields"]);
+    exit;
+}
+
+if ($charLength($title) > $TITLE_MAX_LENGTH) {
+    http_response_code(400);
+    echo json_encode(["success" => false, "message" => "Title must be {$TITLE_MAX_LENGTH} characters or fewer"]);
+    exit;
+}
+
+if ($charLength($code) > $CODE_MAX_LENGTH) {
+    http_response_code(400);
+    echo json_encode(["success" => false, "message" => "Code/Reference must be {$CODE_MAX_LENGTH} characters or fewer"]);
+    exit;
+}
+
+if ($charLength($description) > $DESCRIPTION_MAX_LENGTH) {
+    http_response_code(400);
+    echo json_encode(["success" => false, "message" => "Description must be {$DESCRIPTION_MAX_LENGTH} characters or fewer"]);
     exit;
 }
 

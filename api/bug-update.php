@@ -22,6 +22,17 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 
 $data = json_decode(file_get_contents("php://input"), true) ?? [];
 
+$TITLE_MAX_LENGTH = 80;
+$CODE_MAX_LENGTH = 300;
+$DESCRIPTION_MAX_LENGTH = 1000;
+
+$charLength = static function (string $text): int {
+    if (function_exists("mb_strlen")) {
+        return mb_strlen($text, "UTF-8");
+    }
+    return strlen($text);
+};
+
 $id = isset($data["id"]) ? (int)$data["id"] : 0;
 
 if (!$id) {
@@ -43,6 +54,24 @@ if (!$existing) {
 if (array_key_exists("title", $data) && trim((string)$data["title"]) === "") {
     http_response_code(400);
     echo json_encode(["success" => false, "message" => "Title is required"]);
+    exit;
+}
+
+if (array_key_exists("title", $data) && $charLength(trim((string)$data["title"])) > $TITLE_MAX_LENGTH) {
+    http_response_code(400);
+    echo json_encode(["success" => false, "message" => "Title must be {$TITLE_MAX_LENGTH} characters or fewer"]);
+    exit;
+}
+
+if (array_key_exists("code", $data) && $charLength(trim((string)$data["code"])) > $CODE_MAX_LENGTH) {
+    http_response_code(400);
+    echo json_encode(["success" => false, "message" => "Code/Reference must be {$CODE_MAX_LENGTH} characters or fewer"]);
+    exit;
+}
+
+if (array_key_exists("description", $data) && $charLength(trim((string)$data["description"])) > $DESCRIPTION_MAX_LENGTH) {
+    http_response_code(400);
+    echo json_encode(["success" => false, "message" => "Description must be {$DESCRIPTION_MAX_LENGTH} characters or fewer"]);
     exit;
 }
 

@@ -11,6 +11,9 @@ interface BugFormProps {
 }
 
 export function BugForm({ onSubmit, onCancel, initialData, allUsers }: BugFormProps) {
+  const TITLE_MAX_LENGTH = 80;
+  const CODE_MAX_LENGTH = 300;
+  const DESCRIPTION_MAX_LENGTH = 1000;
   const AI_NOTE_HEADER = '[AI Triage Note]';
 
   const stripAiTriageNote = (text: string): string => {
@@ -29,6 +32,9 @@ export function BugForm({ onSubmit, onCancel, initialData, allUsers }: BugFormPr
     return `${base}\n---\n${AI_NOTE_HEADER}\n${note}`;
   };
 
+  const clampToMaxLength = (text: string, maxLength: number): string =>
+    text.length > maxLength ? text.slice(0, maxLength) : text;
+
   const [formData, setFormData] = useState({
     title: initialData?.title || '',
     code: initialData?.code || '',
@@ -42,6 +48,8 @@ export function BugForm({ onSubmit, onCancel, initialData, allUsers }: BugFormPr
   const [assigneeSearch, setAssigneeSearch] = useState('');
   const [assigneeDropdownOpen, setAssigneeDropdownOpen] = useState(false);
   const [titleError, setTitleError] = useState('');
+  const [codeError, setCodeError] = useState('');
+  const [descriptionError, setDescriptionError] = useState('');
   const [aiSuggesting, setAiSuggesting] = useState(false);
   const [aiError, setAiError] = useState('');
   const assigneeDropdownRef = useRef<HTMLDivElement>(null);
@@ -54,6 +62,8 @@ export function BugForm({ onSubmit, onCancel, initialData, allUsers }: BugFormPr
 
   useEffect(() => {
     setTitleError('');
+    setCodeError('');
+    setDescriptionError('');
   }, [initialData?.id]);
 
   useEffect(() => {
@@ -77,12 +87,30 @@ export function BugForm({ onSubmit, onCancel, initialData, allUsers }: BugFormPr
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedTitle = formData.title.trim();
+    const trimmedCode = formData.code.trim();
+    const trimmedDescription = formData.description.trim();
+
     if (!trimmedTitle) {
       setTitleError('Title is required');
       return;
     }
+    if (!trimmedCode) {
+      setCodeError('Code/Reference is required');
+      return;
+    }
+    if (!trimmedDescription) {
+      setDescriptionError('Description is required');
+      return;
+    }
     setTitleError('');
-    onSubmit({ ...formData, title: trimmedTitle });
+    setCodeError('');
+    setDescriptionError('');
+    onSubmit({
+      ...formData,
+      title: trimmedTitle,
+      code: trimmedCode,
+      description: trimmedDescription,
+    });
   };
 
   const handleSuggestPriority = async () => {
@@ -100,11 +128,20 @@ export function BugForm({ onSubmit, onCancel, initialData, allUsers }: BugFormPr
     try {
       const res = await api.suggestPriority({ title, description, code });
       if (res.success) {
+        let truncatedByLimit = false;
         setFormData((prev) => ({
           ...prev,
           priority: res.priority as Priority,
-          description: upsertAiTriageNote(prev.description, res.explanation),
+          description: (() => {
+            const withAiNote = upsertAiTriageNote(prev.description, res.explanation);
+            const clamped = clampToMaxLength(withAiNote, DESCRIPTION_MAX_LENGTH);
+            truncatedByLimit = clamped.length !== withAiNote.length;
+            return clamped;
+          })(),
         }));
+        if (truncatedByLimit) {
+          setAiError(`AI note was trimmed to stay within ${DESCRIPTION_MAX_LENGTH} characters.`);
+        }
       } else {
         // Never block the form; keep the user's current priority.
         setAiError('Failed to suggest priority.');
@@ -144,12 +181,17 @@ export function BugForm({ onSubmit, onCancel, initialData, allUsers }: BugFormPr
                 setTitleError('');
                 setFormData({ ...formData, title: e.target.value });
               }}
+              maxLength={TITLE_MAX_LENGTH}
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none ${
                 titleError ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="e.g., Login button not responding"
             />
             {titleError ? <p className="text-sm text-red-600 mt-1">{titleError}</p> : null}
+            <div className="mt-1 flex items-center justify-between text-xs text-gray-500">
+              <span>Max {TITLE_MAX_LENGTH} characters</span>
+              <span>{formData.title.length}/{TITLE_MAX_LENGTH}</span>
+            </div>
           </div>
 
           <div>
@@ -159,11 +201,22 @@ export function BugForm({ onSubmit, onCancel, initialData, allUsers }: BugFormPr
             <textarea
               required
               value={formData.code}
-              onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-mono text-sm"
+              onChange={(e) => {
+                setCodeError('');
+                setFormData({ ...formData, code: e.target.value });
+              }}
+              maxLength={CODE_MAX_LENGTH}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-mono text-sm ${
+                codeError ? 'border-red-500' : 'border-gray-300'
+              }`}
               placeholder="e.g., src/components/Auth/LoginButton.tsx:42"
               rows={3}
             />
+            {codeError ? <p className="text-sm text-red-600 mt-1">{codeError}</p> : null}
+            <div className="mt-1 flex items-center justify-between text-xs text-gray-500">
+              <span>Max {CODE_MAX_LENGTH} characters</span>
+              <span>{formData.code.length}/{CODE_MAX_LENGTH}</span>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -310,11 +363,22 @@ export function BugForm({ onSubmit, onCancel, initialData, allUsers }: BugFormPr
             <textarea
               required
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+              onChange={(e) => {
+                setDescriptionError('');
+                setFormData({ ...formData, description: e.target.value });
+              }}
+              maxLength={DESCRIPTION_MAX_LENGTH}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none ${
+                descriptionError ? 'border-red-500' : 'border-gray-300'
+              }`}
               placeholder="Describe the bug and any relevant details..."
               rows={5}
             />
+            {descriptionError ? <p className="text-sm text-red-600 mt-1">{descriptionError}</p> : null}
+            <div className="mt-1 flex items-center justify-between text-xs text-gray-500">
+              <span>Max {DESCRIPTION_MAX_LENGTH} characters</span>
+              <span>{formData.description.length}/{DESCRIPTION_MAX_LENGTH}</span>
+            </div>
           </div>
 
           {initialData && (
