@@ -1,3 +1,4 @@
+//Added DarkMode Fam//
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { motion } from 'motion/react';
@@ -13,6 +14,7 @@ import loginLogo from '../../assets/fflogo.jpeg';
 import { Login } from './Login';
 import { Signup } from './Signup';
 import { api } from '../lib/api';
+
 
 const ffYellow = '#facc15';
 

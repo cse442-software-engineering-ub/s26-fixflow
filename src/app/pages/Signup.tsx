@@ -1,3 +1,4 @@
+//Added DarkMode Fam//
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { X } from 'lucide-react';
@@ -10,6 +11,7 @@ interface SignupProps {
   onClose?: () => void;
   onRequestLogin?: () => void;
 }
+
 
 export function Signup({
   onSignup,

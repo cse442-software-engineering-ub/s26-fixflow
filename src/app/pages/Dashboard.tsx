@@ -1,3 +1,4 @@
+//Added DarkMode Fam//
 import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router';
 import { toast } from 'sonner';
@@ -11,6 +12,7 @@ import { DeleteBugModal } from '../components/DeleteBugModal';
 import { Bug, FixDetails } from '../types';
 import { api } from '../lib/api';
 import { activityLogger } from '../lib/activity';
+
 
 interface DashboardProps {
   currentUser: string;

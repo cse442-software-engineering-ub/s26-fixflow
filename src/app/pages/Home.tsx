@@ -1,3 +1,4 @@
+//Added DarkMode Fam//
 import { useOutletContext, Link } from 'react-router';
 import { Bug } from '../types';
 import { StatsCard } from '../components/StatsCard';
@@ -13,6 +14,7 @@ interface OutletContext {
   onDelete: (id: string) => void;
   onBugClick: (bug: Bug) => void;
 }
+
 
 export function Home() {
   const { bugs, sessionDisplayName, onBugClick } = useOutletContext<OutletContext>();
