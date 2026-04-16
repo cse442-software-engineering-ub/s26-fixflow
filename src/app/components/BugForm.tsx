@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { api } from '../lib/api';
 import { Bug, Priority } from '../types';
+import { toast } from 'sonner';
 
 interface BugFormProps {
   onSubmit: (bug: Omit<Bug, 'id' | 'createdAt'>) => void;
@@ -34,6 +35,8 @@ export function BugForm({ onSubmit, onCancel, initialData, allUsers }: BugFormPr
 
   const clampToMaxLength = (text: string, maxLength: number): string =>
     text.length > maxLength ? text.slice(0, maxLength) : text;
+
+  const hasEmoji = (text: string): boolean => /\p{Extended_Pictographic}/u.test(text);
 
   const [formData, setFormData] = useState({
     title: initialData?.title || '',
@@ -89,6 +92,14 @@ export function BugForm({ onSubmit, onCancel, initialData, allUsers }: BugFormPr
     const trimmedTitle = formData.title.trim();
     const trimmedCode = formData.code.trim();
     const trimmedDescription = formData.description.trim();
+
+    if (hasEmoji(trimmedTitle) || hasEmoji(trimmedCode) || hasEmoji(trimmedDescription)) {
+      if (hasEmoji(trimmedTitle)) setTitleError('No emojis permitted');
+      if (hasEmoji(trimmedCode)) setCodeError('No emojis permitted');
+      if (hasEmoji(trimmedDescription)) setDescriptionError('No emojis permitted');
+      toast.error('No emojis permitted');
+      return;
+    }
 
     if (!trimmedTitle) {
       setTitleError('Title is required');
