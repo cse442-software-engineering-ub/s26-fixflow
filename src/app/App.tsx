@@ -24,7 +24,6 @@ import {
 import { AdminUsers } from './pages/AdminUsers';
 import { DarkModeProvider, useDarkMode } from './lib/DarkModeContext';
 
-
 export default function App() {
   return (
     <DarkModeProvider>

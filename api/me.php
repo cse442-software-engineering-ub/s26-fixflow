@@ -14,7 +14,7 @@ $userId = (int)$_SESSION["user_id"];
 $username = (string)($_SESSION["username"] ?? "");
 
 ensureUserAvatarColumns($pdo);
-$stmt = $pdo->prepare("SELECT full_name, avatar_gradient, avatar_image FROM users WHERE id = ?");
+$stmt = $pdo->prepare("SELECT full_name, avatar_gradient, avatar_image, theme_preference FROM users WHERE id = ?");
 $stmt->execute([$userId]);
 $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
@@ -30,5 +30,6 @@ echo json_encode([
         ? (string)$row["avatar_image"]
         : null,
     "role" => getUserRole($pdo, $userId, $username),
+    "theme_preference" => isset($row["theme_preference"]) && $row["theme_preference"] === "dark" ? "dark" : "light",
 ]);
 

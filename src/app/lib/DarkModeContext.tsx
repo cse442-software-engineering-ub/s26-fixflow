@@ -1,4 +1,3 @@
-//Added DarkMode Fam//
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { api } from './api';
 
