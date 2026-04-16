@@ -239,7 +239,7 @@ export function Navbar({
           </div>
 
           {/* Desktop right section */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-3">
             <RecentActivity currentUser={currentUser} />
             {isAdmin && (
               <Link
@@ -267,8 +267,8 @@ export function Navbar({
             </button>
           </div>
 
-          {/* Mobile hamburger */}
-          <div className="flex md:hidden items-center gap-2 ml-auto">
+          {/* Compact nav / hamburger for sub-lg widths */}
+          <div className="flex lg:hidden items-center gap-2 ml-auto">
             <RecentActivity currentUser={currentUser} />
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -288,7 +288,7 @@ export function Navbar({
         </div>
       </div>
 
-      {/* Mobile dropdown menu */}
+      {/* Mobile / tablet dropdown menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
@@ -296,7 +296,7 @@ export function Navbar({
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="md:hidden overflow-hidden border-t border-gray-200 dark:border-[#3e4650] bg-white dark:bg-[#2f353c]"
+            className="lg:hidden overflow-hidden border-t border-gray-200 dark:border-[#3e4650] bg-white dark:bg-[#2f353c]"
           >
             <div className="px-4 py-3 space-y-1">
               {navItems.map((item) => {
