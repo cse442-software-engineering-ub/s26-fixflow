@@ -257,10 +257,9 @@ export function Landing({ onAuthed }: LandingProps) {
             </p>
           </div>
           <div
-            className="rounded-2xl border-2 border-amber-200/80 p-8 sm:p-10 shadow-sm w-full lg:max-w-md"
-            style={{ background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)' }}
+            className="rounded-2xl border-2 border-amber-200/80 dark:border-[#3e4650] p-8 sm:p-10 shadow-sm w-full lg:max-w-md bg-gradient-to-br from-[#fffbeb] to-[#fef3c7] dark:from-[#282d33] dark:to-[#282d33]"
           >
-            <p className="font-semibold text-slate-900 text-lg mb-6">Ready to streamline your bug tracking?</p>
+            <p className="font-semibold text-slate-900 dark:text-white text-lg mb-6">Ready to streamline your bug tracking?</p>
             <button
               type="button"
               onClick={goSignup}
