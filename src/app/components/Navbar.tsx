@@ -119,19 +119,19 @@ export function Navbar({
   ];
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <nav className="bg-white dark:bg-[#2f353c] border-b border-gray-200 dark:border-[#3e4650] sticky top-0 z-50 shadow-sm">
       <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center h-16 gap-6">
           <Link to="/">
             <motion.div
-              className="flex items-center gap-2 cursor-pointer bg-white rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.06)] border border-gray-200/80 px-3 py-2"
+              className="flex items-center gap-2 cursor-pointer bg-white dark:bg-[#363d45] rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.06)] border border-gray-200/80 dark:border-[#3e4650] px-3 py-2"
               whileHover={{ scale: 1.02 }}
               transition={{ duration: 0.2 }}
             >
               <span className="h-9 w-9 flex-shrink-0 rounded-lg overflow-hidden flex items-center justify-center bg-white">
                 <img src={logoImage} alt="" className="h-full w-full object-cover object-center scale-110" aria-hidden />
               </span>
-              <span className="text-[#1e293b] font-bold text-xl tracking-tight select-none leading-none" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>FixFlow</span>
+              <span className="text-[#1e293b] dark:text-white font-bold text-xl tracking-tight select-none leading-none" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>FixFlow</span>
             </motion.div>
           </Link>
 
@@ -151,7 +151,7 @@ export function Navbar({
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
                       isActive
                         ? 'bg-slate-800 text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#363d45]'
                     }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -173,7 +173,7 @@ export function Navbar({
                 onChange={(e) => handleSearch(e.target.value)}
                 onFocus={() => searchQuery && setShowSearchResults(true)}
                 onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
-                className="w-full pl-10 pr-4 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full pl-10 pr-4 py-1.5 border border-gray-300 dark:border-[#3e4650] dark:bg-[#363d45] dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
             </div>
 
@@ -184,7 +184,7 @@ export function Navbar({
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-full mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto z-50"
+                  className="absolute top-full mt-2 w-full bg-white dark:bg-[#2f353c] border border-gray-200 dark:border-[#3e4650] rounded-lg shadow-lg max-h-96 overflow-y-auto z-50"
                 >
                   <div className="p-2">
                     <div className="text-xs font-medium text-gray-500 px-3 py-2">
@@ -229,9 +229,9 @@ export function Navbar({
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-full mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50"
+                  className="absolute top-full mt-2 w-full bg-white dark:bg-[#2f353c] border border-gray-200 dark:border-[#3e4650] rounded-lg shadow-lg p-4 z-50"
                 >
-                  <p className="text-sm text-gray-500 text-center">No bugs found matching "{searchQuery}"</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center">No bugs found matching "{searchQuery}"</p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -253,14 +253,14 @@ export function Navbar({
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={onOpenAccount}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all"
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-[#363d45] rounded-lg hover:bg-gray-200 dark:hover:bg-[#3e4650] transition-all"
             >
               {renderAvatar()}
-              <span className="text-sm font-medium text-gray-900 hidden lg:inline">{sessionDisplayName}</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-white hidden lg:inline">{sessionDisplayName}</span>
             </motion.button>
             <button
               onClick={onLogout}
-              className="text-sm text-gray-600 hover:text-red-600 font-medium underline transition-colors"
+              className="text-sm text-gray-600 dark:text-gray-400 hover:text-red-600 font-medium underline transition-colors"
             >
               Logout
             </button>
@@ -279,7 +279,7 @@ export function Navbar({
             </motion.button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#363d45] rounded-lg transition-colors"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -295,7 +295,7 @@ export function Navbar({
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="md:hidden overflow-hidden border-t border-gray-200 bg-white"
+            className="md:hidden overflow-hidden border-t border-gray-200 dark:border-[#3e4650] bg-white dark:bg-[#2f353c]"
           >
             <div className="px-4 py-3 space-y-1">
               {navItems.map((item) => {
@@ -309,7 +309,7 @@ export function Navbar({
                     className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
                       isActive
                         ? 'bg-slate-800 text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#363d45]'
                     }`}
                   >
                     <Icon className="w-5 h-5" />
@@ -329,7 +329,7 @@ export function Navbar({
                     onChange={(e) => handleSearch(e.target.value)}
                     onFocus={() => searchQuery && setShowSearchResults(true)}
                     onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-[#3e4650] dark:bg-[#363d45] dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   />
                 </div>
 
@@ -394,10 +394,10 @@ export function Navbar({
               </div>
               
               {/* Quick Actions Section */}
-              <div className="border-t border-gray-200 pt-3 mt-3">
+              <div className="border-t border-gray-200 dark:border-[#3e4650] pt-3 mt-3">
                 <div className="flex items-center gap-2 px-4 py-2 mb-2">
                   <Zap className="w-4 h-4 text-yellow-500" />
-                  <span className="text-sm font-bold text-gray-700">Quick Actions</span>
+                  <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Quick Actions</span>
                 </div>
                 
                 <button
@@ -419,7 +419,7 @@ export function Navbar({
                       className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
                         isActive
                           ? 'bg-yellow-300 text-black'
-                          : 'text-gray-700 hover:bg-gray-100'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#363d45]'
                       }`}
                     >
                       <Icon className="w-5 h-5" />
@@ -440,10 +440,10 @@ export function Navbar({
               </div>
               
               {/* Account Section */}
-              <div className="border-t border-gray-200 pt-3 mt-3">
+              <div className="border-t border-gray-200 dark:border-[#3e4650] pt-3 mt-3">
                 <button
                   onClick={() => { onOpenAccount(); setMobileMenuOpen(false); }}
-                  className="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all"
+                  className="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#363d45] transition-all"
                 >
                   {renderAvatar()}
                   <span className="font-medium">{sessionDisplayName}</span>

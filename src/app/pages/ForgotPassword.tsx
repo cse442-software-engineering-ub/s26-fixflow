@@ -149,8 +149,8 @@ export function ForgotPassword() {
                     placeholder="Enter your email"
                     className={`w-full pl-11 sm:pl-14 pr-4 sm:pr-6 py-3 sm:py-4 text-base sm:text-lg border-2 rounded-full outline-none transition-colors ${
                       focusedField === 'email'
-                        ? 'border-blue-400 bg-blue-50'
-                        : 'border-gray-300 bg-white'
+                        ? 'border-blue-400 bg-blue-50 dark:bg-blue-950'
+                        : 'border-gray-300 bg-white dark:bg-[#363d45]'
                     }`}
                     required
                   />
@@ -160,7 +160,7 @@ export function ForgotPassword() {
               <div className="pt-2 sm:pt-4">
                 <button
                   type="submit"
-                  className="w-full py-3 sm:py-4 bg-white border-2 border-black rounded-full text-xl sm:text-2xl font-bold italic hover:bg-gray-50 transition-colors"
+                  className="w-full py-3 sm:py-4 bg-white dark:bg-[#363d45] border-2 border-black dark:border-gray-500 dark:text-white rounded-full text-xl sm:text-2xl font-bold italic hover:bg-gray-50 dark:hover:bg-[#3e4650] transition-colors"
                 >
                   Send verification code
                 </button>
@@ -188,7 +188,7 @@ export function ForgotPassword() {
                   onBlur={() => setFocusedField(null)}
                   placeholder="Enter 6-digit code"
                   className={`w-full px-4 sm:px-6 py-3 sm:py-4 text-base sm:text-lg border-2 rounded-full outline-none transition-colors text-center tracking-widest ${
-                    focusedField === 'code' ? 'border-blue-400 bg-blue-50' : 'border-gray-300 bg-white'
+                    focusedField === 'code' ? 'border-blue-400 bg-blue-50 dark:bg-blue-950' : 'border-gray-300 bg-white dark:bg-[#363d45]'
                   }`}
                 />
               </div>
@@ -196,7 +196,7 @@ export function ForgotPassword() {
               <div className="flex flex-col gap-3">
                 <button
                   type="submit"
-                  className="w-full py-3 sm:py-4 bg-white border-2 border-black rounded-full text-xl sm:text-2xl font-bold italic hover:bg-gray-50 transition-colors"
+                  className="w-full py-3 sm:py-4 bg-white dark:bg-[#363d45] border-2 border-black dark:border-gray-500 dark:text-white rounded-full text-xl sm:text-2xl font-bold italic hover:bg-gray-50 dark:hover:bg-[#3e4650] transition-colors"
                 >
                   Continue
                 </button>
@@ -232,8 +232,8 @@ export function ForgotPassword() {
                     placeholder="Enter new password"
                     className={`w-full pl-11 sm:pl-14 pr-4 sm:pr-6 py-3 sm:py-4 text-base sm:text-lg border-2 rounded-full outline-none transition-colors ${
                       focusedField === 'newPassword'
-                        ? 'border-blue-400 bg-blue-50'
-                        : 'border-gray-300 bg-white'
+                        ? 'border-blue-400 bg-blue-50 dark:bg-blue-950'
+                        : 'border-gray-300 bg-white dark:bg-[#363d45]'
                     }`}
                     required
                   />
@@ -253,8 +253,8 @@ export function ForgotPassword() {
                     placeholder="Confirm new password"
                     className={`w-full pl-11 sm:pl-14 pr-4 sm:pr-6 py-3 sm:py-4 text-base sm:text-lg border-2 rounded-full outline-none transition-colors ${
                       focusedField === 'confirmPassword'
-                        ? 'border-blue-400 bg-blue-50'
-                        : 'border-gray-300 bg-white'
+                        ? 'border-blue-400 bg-blue-50 dark:bg-blue-950'
+                        : 'border-gray-300 bg-white dark:bg-[#363d45]'
                     }`}
                     required
                   />
@@ -264,7 +264,7 @@ export function ForgotPassword() {
               <div className="pt-2 sm:pt-4">
                 <button
                   type="submit"
-                  className="w-full py-3 sm:py-4 bg-white border-2 border-black rounded-full text-xl sm:text-2xl font-bold italic hover:bg-gray-50 transition-colors"
+                  className="w-full py-3 sm:py-4 bg-white dark:bg-[#363d45] border-2 border-black dark:border-gray-500 dark:text-white rounded-full text-xl sm:text-2xl font-bold italic hover:bg-gray-50 dark:hover:bg-[#3e4650] transition-colors"
                 >
                   Reset Password
                 </button>
