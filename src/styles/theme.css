@@ -42,25 +42,27 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
+  --background: #282d33;
+  --foreground: #ffffff;
+  --card: #2f353c;
+  --card-foreground: #ffffff;
+  --popover: #2f353c;
+  --popover-foreground: #ffffff;
+  --primary: #ffffff;
+  --primary-foreground: #282d33;
+  --secondary: #363d45;
+  --secondary-foreground: #ffffff;
+  --muted: #363d45;
+  --muted-foreground: #9ca3af;
+  --accent: #3a424b;
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+  --destructive-foreground: #fecaca;
+  --border: #3e4650;
+  --input: #3e4650;
+  --input-background: #363d45;
+  --switch-background: #4b5563;
+  --ring: #6b7280;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
   --chart-1: oklch(0.488 0.243 264.376);
@@ -68,14 +70,14 @@
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  --sidebar: #232830;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #60a5fa;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #363d45;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #3e4650;
+  --sidebar-ring: #6b7280;
 }
 
 @theme inline {
@@ -203,3 +205,103 @@
     display: none; /* Chrome, Safari, Opera */
   }
 }
+
+/*
+ * Global dark-mode overrides for hardcoded Tailwind utility classes.
+ * These use `.dark .utility` (specificity 0,2,0) so they automatically
+ * apply dark colors to every component without editing each file.
+ * Explicit `dark:` variants on individual elements still win because
+ * Tailwind utilities appear later in the stylesheet at equal specificity.
+ */
+
+/* ── Backgrounds ── */
+.dark .bg-white    { background-color: #2f353c; }
+.dark .bg-white\/95 { background-color: rgb(47 53 60 / 0.95); }
+.dark .bg-white\/80 { background-color: rgb(47 53 60 / 0.80); }
+.dark .bg-white\/50 { background-color: rgb(47 53 60 / 0.50); }
+.dark .bg-white\/20 { background-color: rgb(47 53 60 / 0.20); }
+.dark .bg-gray-50  { background-color: #363d45; }
+.dark .bg-gray-100 { background-color: #282d33; }
+.dark .bg-gray-200 { background-color: #363d45; }
+
+/* ── Text ── */
+.dark .text-gray-900,
+.dark .text-gray-800 { color: #ffffff; }
+.dark .text-gray-700 { color: #d1d5db; }
+.dark .text-gray-600 { color: #9ca3af; }
+.dark .text-gray-500 { color: #9ca3af; }
+
+.dark .text-slate-900,
+.dark .text-slate-800 { color: #ffffff; }
+.dark .text-slate-700 { color: #d1d5db; }
+.dark .text-slate-600 { color: #9ca3af; }
+.dark .text-slate-500 { color: #9ca3af; }
+
+.dark .text-\[\#1e293b\] { color: #ffffff; }
+
+/* ── Borders ── */
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300 { border-color: #3e4650; }
+
+.dark .border-gray-100\/90 { border-color: rgb(62 70 80 / 0.90); }
+.dark .border-gray-200\/80 { border-color: rgb(62 70 80 / 0.80); }
+.dark .border-gray-200\/50 { border-color: rgb(62 70 80 / 0.50); }
+
+.dark .divide-gray-100 > :not(:last-child) { border-color: #3e4650; }
+.dark .divide-gray-200 > :not(:last-child) { border-color: #3e4650; }
+
+/* ── Hovers ── */
+.dark .hover\:bg-gray-50:hover  { background-color: #363d45; }
+.dark .hover\:bg-gray-100:hover { background-color: #3a424b; }
+.dark .hover\:bg-gray-200:hover { background-color: #3e4650; }
+.dark .hover\:bg-gray-300:hover { background-color: #4b5563; }
+
+/* ── Gradient start/end for light tinted sections ── */
+.dark .from-blue-50   { --tw-gradient-from: #363d45; }
+.dark .to-purple-50   { --tw-gradient-to: #3a424b; }
+.dark .from-green-50  { --tw-gradient-from: #363d45; }
+.dark .to-emerald-50  { --tw-gradient-to: #3a424b; }
+.dark .from-red-50    { --tw-gradient-from: #363d45; }
+.dark .to-pink-50     { --tw-gradient-to: #3a424b; }
+.dark .from-orange-50 { --tw-gradient-from: #363d45; }
+.dark .to-yellow-50   { --tw-gradient-to: #3a424b; }
+.dark .from-amber-50  { --tw-gradient-from: #363d45; }
+.dark .from-rose-50   { --tw-gradient-from: #363d45; }
+.dark .from-emerald-50 { --tw-gradient-from: #363d45; }
+.dark .from-sky-50    { --tw-gradient-from: #363d45; }
+.dark .to-green-50    { --tw-gradient-to: #3a424b; }
+.dark .to-blue-50     { --tw-gradient-to: #3a424b; }
+.dark .to-white       { --tw-gradient-to: #2f353c; }
+.dark .from-red-50\/60  { --tw-gradient-from: rgb(54 61 69 / 0.60); }
+.dark .from-orange-50\/60 { --tw-gradient-from: rgb(54 61 69 / 0.60); }
+.dark .from-green-50\/60  { --tw-gradient-from: rgb(54 61 69 / 0.60); }
+
+/* ── Form inputs (unfocused state) ── */
+.dark input,
+.dark textarea,
+.dark select {
+  color: #ffffff;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #6b7280;
+}
+
+/* ── Slate background overrides ── */
+.dark .bg-slate-100 { background-color: #363d45; }
+
+/* ── Tinted alert/info boxes ── */
+.dark .bg-blue-50  { background-color: rgb(30 58 138 / 0.25); }
+.dark .bg-blue-100 { background-color: rgb(30 58 138 / 0.30); }
+.dark .bg-red-50   { background-color: rgb(127 29 29 / 0.25); }
+.dark .bg-red-100  { background-color: rgb(127 29 29 / 0.30); }
+.dark .bg-green-50 { background-color: rgb(20 83 45 / 0.25); }
+.dark .bg-green-100 { background-color: rgb(20 83 45 / 0.30); }
+.dark .bg-amber-50 { background-color: rgb(120 53 15 / 0.25); }
+.dark .bg-orange-50 { background-color: rgb(124 45 18 / 0.25); }
+
+/* ── Table / option styling ── */
+.dark option { background-color: #2f353c; color: #ffffff; }
+.dark .border-t { border-color: #3e4650; }
+.dark .border-b { border-color: #3e4650; }

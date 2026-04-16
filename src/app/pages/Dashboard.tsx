@@ -463,7 +463,7 @@ export function Dashboard({
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-gray-50 dark:bg-[#282d33] dark:text-white">
       <Navbar 
         onAddBug={() => setShowForm(true)} 
         currentUser={currentUser}

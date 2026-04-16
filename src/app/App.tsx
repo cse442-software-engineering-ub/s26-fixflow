@@ -21,8 +21,17 @@ import {
   displayNameForSelf,
 } from './lib/user-display';
 import { AdminUsers } from './pages/AdminUsers';
+import { DarkModeProvider, useDarkMode } from './lib/DarkModeContext';
 
 export default function App() {
+  return (
+    <DarkModeProvider>
+      <AppInner />
+    </DarkModeProvider>
+  );
+}
+
+function AppInner() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState('');
   const [sessionFullName, setSessionFullName] = useState<string | null>(null);
@@ -30,6 +39,7 @@ export default function App() {
   const [sessionAvatarImage, setSessionAvatarImage] = useState<string | null>(null);
   const [currentRole, setCurrentRole] = useState<'admin' | 'developer'>('developer');
   const [isLoading, setIsLoading] = useState(true);
+  const { syncFromServer } = useDarkMode();
 
   const applyMeResponse = (res: Awaited<ReturnType<typeof api.me>>) => {
     if (res.authenticated && res.username) {
@@ -42,6 +52,8 @@ export default function App() {
       setCurrentRole(res.role === 'admin' ? 'admin' : 'developer');
       setIsAuthenticated(true);
       localStorage.setItem('currentUser', res.username);
+
+      syncFromServer(res.theme_preference ?? 'light');
     } else {
       setIsAuthenticated(false);
       setCurrentUser('');

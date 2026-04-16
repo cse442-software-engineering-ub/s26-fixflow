@@ -136,8 +136,8 @@ export function Landing({ onAuthed }: LandingProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-white text-slate-900">
-      <header className="sticky top-0 z-40 border-b border-gray-200/80 bg-white/95 backdrop-blur-sm">
+    <div className="min-h-screen bg-white dark:bg-[#282d33] text-slate-900 dark:text-white">
+      <header className="sticky top-0 z-40 border-b border-gray-200/80 dark:border-[#3e4650] bg-white/95 dark:bg-[#282d33]/95 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="h-10 w-10 rounded-lg overflow-hidden flex items-center justify-center bg-white border border-gray-100 shadow-sm">
@@ -149,7 +149,7 @@ export function Landing({ onAuthed }: LandingProps) {
             <button
               type="button"
               onClick={goLogin}
-              className="px-4 py-2 rounded-full text-sm sm:text-base font-semibold border-2 border-gray-300 text-slate-800 hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 rounded-full text-sm sm:text-base font-semibold border-2 border-gray-300 dark:border-gray-500 text-slate-800 dark:text-white hover:bg-gray-50 dark:hover:bg-[#363d45] transition-colors"
             >
               Log In
             </button>
@@ -247,7 +247,7 @@ export function Landing({ onAuthed }: LandingProps) {
         </div>
       </section>
 
-      <section className="border-t border-gray-200 bg-gray-50">
+      <section className="border-t border-gray-200 dark:border-[#3e4650] bg-gray-50 dark:bg-[#2f353c]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-10">
           <div className="max-w-xl">
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4">How FixFlow helps your team</h2>
@@ -257,10 +257,9 @@ export function Landing({ onAuthed }: LandingProps) {
             </p>
           </div>
           <div
-            className="rounded-2xl border-2 border-amber-200/80 p-8 sm:p-10 shadow-sm w-full lg:max-w-md"
-            style={{ background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)' }}
+            className="rounded-2xl border-2 border-amber-200/80 dark:border-[#3e4650] p-8 sm:p-10 shadow-sm w-full lg:max-w-md bg-gradient-to-br from-[#fffbeb] to-[#fef3c7] dark:from-[#282d33] dark:to-[#282d33]"
           >
-            <p className="font-semibold text-slate-900 text-lg mb-6">Ready to streamline your bug tracking?</p>
+            <p className="font-semibold text-slate-900 dark:text-white text-lg mb-6">Ready to streamline your bug tracking?</p>
             <button
               type="button"
               onClick={goSignup}
@@ -273,7 +272,7 @@ export function Landing({ onAuthed }: LandingProps) {
         </div>
       </section>
 
-      <footer className="border-t border-gray-200 py-8 text-center text-sm text-slate-500">
+      <footer className="border-t border-gray-200 dark:border-[#3e4650] py-8 text-center text-sm text-slate-500 dark:text-gray-400">
         FixFlow — bug tracking for clearer delivery.
       </footer>
 
@@ -284,7 +283,7 @@ export function Landing({ onAuthed }: LandingProps) {
           onClick={closeAuthModal}
         >
           <div
-            className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-gray-200 p-4 sm:p-6 shadow-2xl"
+            className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-gray-200 dark:bg-[#282d33] p-4 sm:p-6 shadow-2xl"
             role="dialog"
             aria-modal="true"
             aria-labelledby={authModal === 'login' ? 'login-heading' : 'signup-heading'}
