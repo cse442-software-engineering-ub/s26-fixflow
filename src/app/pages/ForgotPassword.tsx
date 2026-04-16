@@ -1,8 +1,10 @@
+//Added DarkMode Fam//
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { ArrowLeft, Mail, Lock } from 'lucide-react';
 import loginLogo from '../../assets/fflogo.jpeg';
 import { api } from '../lib/api';
+
 
 export function ForgotPassword() {
   const navigate = useNavigate();
