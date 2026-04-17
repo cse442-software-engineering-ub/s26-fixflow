@@ -34,26 +34,37 @@ export function Login({
 
   const inner = (
     <>
-      <div className={`text-center ${variant === 'modal' ? 'mb-4' : 'mb-4 sm:mb-8'}`}>
-        <div className="inline-flex items-center gap-4 sm:gap-5 bg-white rounded-3xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-gray-100/90 px-8 sm:px-10 py-5 sm:py-6">
-          <span className="h-11 w-11 sm:h-16 sm:w-16 flex-shrink-0 rounded-lg overflow-hidden flex items-center justify-center bg-white">
-            <img src={loginLogo} alt="" className="h-full w-full object-cover object-center scale-110" aria-hidden />
-          </span>
-          <span
-            className="text-[#1e293b] font-bold text-2xl sm:text-3xl tracking-tight select-none"
-            style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-          >
-            FixFlow
-          </span>
+      {variant !== 'modal' && (
+        <div className="text-center mb-4 sm:mb-8">
+          <div className="inline-flex items-center gap-4 sm:gap-5 bg-white rounded-3xl shadow-[0_1px_4px_rgba(0,0,0,0.06)] border border-gray-100/90 px-8 sm:px-10 py-5 sm:py-6">
+            <span className="h-11 w-11 sm:h-16 sm:w-16 flex-shrink-0 rounded-lg overflow-hidden flex items-center justify-center bg-white">
+              <img src={loginLogo} alt="" className="h-full w-full object-cover object-center scale-110" aria-hidden />
+            </span>
+            <span
+              className="text-[#1e293b] font-bold text-2xl sm:text-3xl tracking-tight select-none"
+              style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+            >
+              FixFlow
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="bg-white rounded-2xl sm:rounded-3xl shadow-lg px-5 py-6 sm:p-12">
         <h1
           id={variant === 'modal' ? 'login-heading' : undefined}
           className={`font-bold text-center mb-6 sm:mb-12 ${variant === 'modal' ? 'text-3xl sm:text-4xl' : 'text-3xl sm:text-6xl'}`}
         >
-          LOGIN
+          {variant === 'modal' ? (
+            <span className="inline-flex items-center gap-3">
+              <span className="h-9 w-9 rounded-lg overflow-hidden flex items-center justify-center bg-white border border-gray-100">
+                <img src={loginLogo} alt="" className="h-full w-full object-cover object-center scale-110" aria-hidden />
+              </span>
+              <span>LOGIN</span>
+            </span>
+          ) : (
+            'LOGIN'
+          )}
         </h1>
 
         {error && (

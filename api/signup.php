@@ -23,8 +23,8 @@ if (!$name || !$email || !$username || !$password) {
 
 $hash = password_hash($password, PASSWORD_DEFAULT);
 
-// checking duplicate username
-$stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
+// checking duplicate username (case-sensitive)
+$stmt = $pdo->prepare("SELECT id FROM users WHERE BINARY username = ?");
 $stmt->execute([$username]);
 if ($stmt->fetch()) {
     echo json_encode(["success" => false, "message" => "Username already exists"]);

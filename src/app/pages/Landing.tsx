@@ -138,27 +138,27 @@ export function Landing({ onAuthed }: LandingProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#282d33] text-slate-900 dark:text-white">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-white dark:bg-[#282d33] text-slate-900 dark:text-white">
       <header className="sticky top-0 z-40 border-b border-gray-200/80 dark:border-[#3e4650] bg-white/95 dark:bg-[#282d33]/95 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="h-10 w-10 rounded-lg overflow-hidden flex items-center justify-center bg-white border border-gray-100 shadow-sm">
+            <span className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg overflow-hidden flex items-center justify-center bg-white border border-gray-100 shadow-sm">
               <img src={loginLogo} alt="" className="h-full w-full object-cover scale-110" aria-hidden />
             </span>
-            <span className="font-bold text-xl sm:text-2xl text-slate-900 tracking-tight">FixFlow</span>
+            <span className="font-bold text-lg sm:text-xl text-slate-900 tracking-tight">FixFlow</span>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               type="button"
               onClick={goLogin}
-              className="px-4 py-2 rounded-full text-sm sm:text-base font-semibold border-2 border-gray-300 dark:border-gray-500 text-slate-800 dark:text-white hover:bg-gray-50 dark:hover:bg-[#363d45] transition-colors"
+              className="px-3.5 py-1.5 rounded-full text-sm font-semibold border-2 border-gray-300 dark:border-gray-500 text-slate-800 dark:text-white hover:bg-gray-50 dark:hover:bg-[#363d45] transition-colors"
             >
               Log In
             </button>
             <button
               type="button"
               onClick={goSignup}
-              className="inline-flex items-center gap-1 sm:gap-2 pl-4 pr-3 py-2 rounded-full text-sm sm:text-base font-bold text-black border-2 border-black transition-colors hover:opacity-95"
+              className="inline-flex items-center gap-1 sm:gap-2 pl-3.5 pr-3 py-1.5 rounded-full text-sm font-bold text-black border-2 border-black transition-colors hover:opacity-95"
               style={{ backgroundColor: ffYellow }}
             >
               Sign Up
@@ -169,7 +169,8 @@ export function Landing({ onAuthed }: LandingProps) {
         </div>
       </header>
 
-      <section className="relative overflow-hidden bg-slate-900 text-white">
+      <main className="lg:h-[calc(100vh-4rem)] lg:flex lg:flex-col">
+      <section className="relative overflow-hidden bg-slate-900 text-white lg:flex-[1.2]">
         <div
           className="absolute inset-0 opacity-[0.12]"
           style={{
@@ -178,27 +179,27 @@ export function Landing({ onAuthed }: LandingProps) {
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 lg:py-28">
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:pt-4 lg:pb-28">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45 }}
             className="max-w-2xl"
           >
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-4 sm:mb-6">
+            <h1 className="text-4xl sm:text-5xl lg:text-4xl xl:text-5xl font-bold leading-tight mb-4 sm:mb-6 lg:mb-4">
               Welcome to FixFlow
             </h1>
-            <p className="text-lg sm:text-xl text-slate-300 mb-3 sm:mb-4">
+            <p className="text-lg sm:text-xl lg:text-lg text-slate-300 mb-3 sm:mb-4 lg:mb-3">
               Track, prioritize, and resolve bugs with clarity and speed.
             </p>
-            <p className="text-slate-400 mb-8 sm:mb-10 text-sm sm:text-base leading-relaxed">
+            <p className="text-slate-400 mb-8 sm:mb-10 lg:mb-6 text-sm sm:text-base leading-relaxed">
               FixFlow helps teams manage bug reports, prioritize issues, and keep projects running smoothly.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 lg:gap-3">
               <button
                 type="button"
                 onClick={goSignup}
-                className="inline-flex items-center justify-center px-8 py-3.5 rounded-full font-bold text-black text-lg border-2 border-black shadow-lg hover:brightness-105 transition-all"
+                className="inline-flex items-center justify-center px-8 py-3 lg:py-2.5 rounded-full font-bold text-black text-lg lg:text-base border-2 border-black shadow-lg hover:brightness-105 transition-all"
                 style={{ backgroundColor: ffYellow }}
               >
                 Get Started
@@ -206,7 +207,7 @@ export function Landing({ onAuthed }: LandingProps) {
               <button
                 type="button"
                 onClick={goLogin}
-                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full font-bold text-slate-900 bg-white border-2 border-white hover:bg-slate-100 transition-colors text-lg"
+                className="inline-flex items-center justify-center gap-2 px-8 py-3 lg:py-2.5 rounded-full font-bold text-slate-900 bg-white border-2 border-white hover:bg-slate-100 transition-colors text-lg lg:text-base"
               >
                 Log In
                 <ArrowRight className="w-5 h-5" />
@@ -216,11 +217,11 @@ export function Landing({ onAuthed }: LandingProps) {
         </div>
       </section>
 
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
-        <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-10 sm:mb-12 text-center sm:text-left">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 lg:pt-11 lg:pb-1 lg:flex-1">
+        <h2 className="text-2xl sm:text-3xl lg:text-2xl font-bold text-slate-900 mb-8 sm:mb-9 lg:mb-4 text-center sm:text-left">
           What you can do with FixFlow
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 lg:gap-3">
           {features.map((f, i) => {
             const Icon = f.icon;
             return (
@@ -230,17 +231,17 @@ export function Landing({ onAuthed }: LandingProps) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-40px' }}
                 transition={{ delay: i * 0.06 }}
-                className={`rounded-2xl border p-5 sm:p-6 lg:p-5 bg-gradient-to-br shadow-sm hover:shadow-md transition-shadow ${f.bg}`}
+                className={`rounded-2xl border p-5 sm:p-6 lg:p-4 bg-gradient-to-br shadow-sm hover:shadow-md transition-shadow ${f.bg}`}
               >
                 <div className="flex items-start gap-3 sm:gap-4">
                   <div className={`rounded-xl bg-white/80 p-3 shadow-sm shrink-0 ${f.iconClass}`}>
                     <Icon className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2} />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-1.5 sm:mb-2 leading-snug">
+                    <h3 className="text-base sm:text-lg lg:text-base font-bold text-slate-900 mb-1.5 sm:mb-2 lg:mb-1 leading-snug">
                       {f.title}
                     </h3>
-                    <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">{f.desc}</p>
+                    <p className="text-slate-600 text-xs sm:text-sm lg:text-xs leading-relaxed">{f.desc}</p>
                   </div>
                 </div>
               </motion.div>
@@ -249,17 +250,17 @@ export function Landing({ onAuthed }: LandingProps) {
         </div>
       </section>
 
-      <section className="border-t border-gray-200 dark:border-[#3e4650] bg-gray-50 dark:bg-[#2f353c]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-10">
+      <section className="border-t border-gray-200 dark:border-[#3e4650] bg-gray-50 dark:bg-[#2f353c] lg:flex-1">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 lg:py-5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-10 lg:gap-6">
           <div className="max-w-xl">
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4">How FixFlow helps your team</h2>
+            <h2 className="text-2xl sm:text-3xl lg:text-2xl font-bold text-slate-900 mb-4 lg:mb-2">How FixFlow helps your team</h2>
             <p className="text-slate-600 leading-relaxed">
               FixFlow gives teams a clear, organized way to report, prioritize, and resolve software issues. With
               real-time visibility into bug status and assignments, everyone stays aligned and accountable.
             </p>
           </div>
           <div
-            className="rounded-2xl border-2 border-amber-200/80 dark:border-[#3e4650] p-8 sm:p-10 shadow-sm w-full lg:max-w-md bg-gradient-to-br from-[#fffbeb] to-[#fef3c7] dark:from-[#282d33] dark:to-[#282d33]"
+            className="rounded-2xl border-2 border-amber-200/80 dark:border-[#3e4650] p-8 sm:p-10 lg:p-6 shadow-sm w-full lg:max-w-md bg-gradient-to-br from-[#fffbeb] to-[#fef3c7] dark:from-[#282d33] dark:to-[#282d33]"
           >
             <p className="font-semibold text-slate-900 dark:text-white text-lg mb-6">Ready to streamline your bug tracking?</p>
             <button
@@ -273,9 +274,10 @@ export function Landing({ onAuthed }: LandingProps) {
           </div>
         </div>
       </section>
+      </main>
 
-      <footer className="border-t border-gray-200 dark:border-[#3e4650] py-8 text-center text-sm text-slate-500 dark:text-gray-400">
-        FixFlow — bug tracking for clearer delivery.
+      <footer className="lg:hidden border-t border-gray-200 dark:border-[#3e4650] py-8 text-center text-sm text-slate-500 dark:text-gray-400">
+        FixFlow - bug tracking for clearer delivery.
       </footer>
 
       {authModal && (
@@ -285,7 +287,7 @@ export function Landing({ onAuthed }: LandingProps) {
           onClick={closeAuthModal}
         >
           <div
-            className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-gray-200 dark:bg-[#282d33] p-4 sm:p-6 shadow-2xl"
+            className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto"
             role="dialog"
             aria-modal="true"
             aria-labelledby={authModal === 'login' ? 'login-heading' : 'signup-heading'}
