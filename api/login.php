@@ -15,7 +15,7 @@ if (!$username || !$password) {
     exit;
 }
 
-$stmt = $pdo->prepare("SELECT id, password_hash FROM users WHERE username = ?");
+$stmt = $pdo->prepare("SELECT id, username, password_hash FROM users WHERE BINARY username = ?");
 $stmt->execute([$username]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -25,12 +25,12 @@ if (!$user || !password_verify($password, $user["password_hash"])) {
 }
 
 $_SESSION["user_id"] = (int)$user["id"];
-$_SESSION["username"] = $username;
+$_SESSION["username"] = $user["username"];
 
 // Track last successful login for admin/audit visibility.
 ensureUsersLastLoginColumn($pdo);
 $stmtUpdate = $pdo->prepare("UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?");
 $stmtUpdate->execute([(int)$user["id"]]);
 
-echo json_encode(["success" => true, "username" => $username]);
+echo json_encode(["success" => true, "username" => $user["username"]]);
 
