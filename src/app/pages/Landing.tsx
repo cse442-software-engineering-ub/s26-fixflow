@@ -170,7 +170,7 @@ export function Landing({ onAuthed }: LandingProps) {
       </header>
 
       <main className="lg:h-[calc(100vh-4rem)] lg:flex lg:flex-col">
-      <section className="relative overflow-hidden bg-slate-900 text-white lg:flex-[1.2]">
+      <section className="relative overflow-x-hidden bg-slate-900 text-white lg:flex-[1.2] lg:min-h-[18rem]">
         <div
           className="absolute inset-0 opacity-[0.12]"
           style={{
@@ -179,7 +179,7 @@ export function Landing({ onAuthed }: LandingProps) {
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:pt-4 lg:pb-28">
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:pt-4 lg:pb-16">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
