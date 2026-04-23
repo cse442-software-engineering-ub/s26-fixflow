@@ -13,6 +13,69 @@ if (file_exists($keysFile)) {
     require_once $keysFile;
 }
 
+/**
+ * Ensure BYOK storage exists for teammates whose local/shared DB was not
+ * manually provisioned through phpMyAdmin yet.
+ */
+function ensureUserAiKeysTable(PDO $pdo): void
+{
+    $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+    if ($driver === "sqlite") {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS user_ai_keys (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL UNIQUE,
+                provider TEXT NOT NULL,
+                model TEXT NOT NULL,
+                api_key_encrypted TEXT NOT NULL,
+                iv TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+            );
+        ");
+        return;
+    }
+
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS user_ai_keys (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            provider VARCHAR(50) NOT NULL,
+            model VARCHAR(150) NOT NULL,
+            api_key_encrypted TEXT NOT NULL,
+            iv VARCHAR(32) NOT NULL,
+            created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY unique_user (user_id)
+        );
+    ");
+}
+
+/**
+ * BYOK uses one app-level encryption secret to protect each user's provider
+ * key before storing it in the database. The user never supplies this value.
+ */
+function getByokEncryptKey(): ?string
+{
+    $envValue = getenv("BYOK_ENCRYPT_KEY");
+    if (is_string($envValue)) {
+        $envValue = trim($envValue);
+        if (preg_match('/^[a-f0-9]{32}$/i', $envValue) === 1) {
+            return $envValue;
+        }
+    }
+
+    if (defined("BYOK_ENCRYPT_KEY")) {
+        $configValue = trim((string)BYOK_ENCRYPT_KEY);
+        if (preg_match('/^[a-f0-9]{32}$/i', $configValue) === 1) {
+            return $configValue;
+        }
+    }
+
+    return null;
+}
+
 function sendJson(array $payload, int $status = 200): void
 {
     http_response_code($status);
@@ -111,6 +174,7 @@ if (!isset($_SESSION["user_id"]) || !is_numeric($_SESSION["user_id"])) {
 
 $userId = (int)$_SESSION["user_id"];
 $method = $_SERVER["REQUEST_METHOD"] ?? "GET";
+ensureUserAiKeysTable($pdo);
 
 // -------------------- GET --------------------
 if ($method === "GET") {
@@ -127,7 +191,8 @@ if ($method === "GET") {
                 "maskedKey" => null,
             ]);
         }
-        if (!defined("BYOK_ENCRYPT_KEY") || BYOK_ENCRYPT_KEY === "" || BYOK_ENCRYPT_KEY === "REPLACE_WITH_OUTPUT_OF_openssl_rand_hex_16") {
+        $encryptKey = getByokEncryptKey();
+        if ($encryptKey === null) {
             sendJson([
                 "success" => true,
                 "hasKey" => true,
@@ -139,7 +204,7 @@ if ($method === "GET") {
         $plain = openssl_decrypt(
             (string)$row["api_key_encrypted"],
             "AES-256-CBC",
-            BYOK_ENCRYPT_KEY,
+            $encryptKey,
             0,
             hex2bin((string)$row["iv"])
         );
@@ -166,7 +231,8 @@ if ($method === "GET") {
 
 // -------------------- POST --------------------
 if ($method === "POST") {
-    if (!defined("BYOK_ENCRYPT_KEY") || BYOK_ENCRYPT_KEY === "" || BYOK_ENCRYPT_KEY === "REPLACE_WITH_OUTPUT_OF_openssl_rand_hex_16") {
+    $encryptKey = getByokEncryptKey();
+    if ($encryptKey === null) {
         sendJson(["success" => false, "message" => "BYOK encryption not configured"], 503);
     }
     $data = getRequestJson();
@@ -186,7 +252,7 @@ if ($method === "POST") {
 
     $ivBin = random_bytes(16);
     $ivHex = bin2hex($ivBin);
-    $encrypted = openssl_encrypt($apiKey, "AES-256-CBC", BYOK_ENCRYPT_KEY, 0, $ivBin);
+    $encrypted = openssl_encrypt($apiKey, "AES-256-CBC", $encryptKey, 0, $ivBin);
     if ($encrypted === false) {
         sendJson(["success" => false, "message" => "Encryption failed"], 500);
     }

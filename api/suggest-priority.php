@@ -7,6 +7,98 @@ require_once __DIR__ . "/db-connection.php";
 // This endpoint is intentionally resilient:
 // - If AI keys are missing or providers fail, we always return a valid JSON response.
 
+/**
+ * Ensure BYOK storage exists before reading a user's saved provider key.
+ */
+function ensureUserAiKeysTable(PDO $pdo): void
+{
+    $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+    if ($driver === "sqlite") {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS user_ai_keys (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL UNIQUE,
+                provider TEXT NOT NULL,
+                model TEXT NOT NULL,
+                api_key_encrypted TEXT NOT NULL,
+                iv TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+            );
+        ");
+        return;
+    }
+
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS user_ai_keys (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            provider VARCHAR(50) NOT NULL,
+            model VARCHAR(150) NOT NULL,
+            api_key_encrypted TEXT NOT NULL,
+            iv VARCHAR(32) NOT NULL,
+            created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY unique_user (user_id)
+        );
+    ");
+}
+
+/**
+ * Cache writes are best-effort, but the table should exist anywhere this
+ * endpoint is deployed so teammates do not need manual SQL setup.
+ */
+function ensureAiPriorityCacheTable(PDO $pdo): void
+{
+    $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+    if ($driver === "sqlite") {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS ai_priority_cache (
+                cache_key TEXT PRIMARY KEY,
+                priority TEXT NOT NULL,
+                explanation TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+            );
+        ");
+        return;
+    }
+
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS ai_priority_cache (
+            cache_key CHAR(64) PRIMARY KEY,
+            priority VARCHAR(20) NOT NULL,
+            explanation TEXT NOT NULL,
+            created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
+        );
+    ");
+}
+
+/**
+ * BYOK uses one app-level encryption secret to decrypt the saved provider key
+ * before sending the bug triage request to the user's chosen provider.
+ */
+function getByokEncryptKey(): ?string
+{
+    $envValue = getenv("BYOK_ENCRYPT_KEY");
+    if (is_string($envValue)) {
+        $envValue = trim($envValue);
+        if (preg_match('/^[a-f0-9]{32}$/i', $envValue) === 1) {
+            return $envValue;
+        }
+    }
+
+    if (defined("BYOK_ENCRYPT_KEY")) {
+        $configValue = trim((string)BYOK_ENCRYPT_KEY);
+        if (preg_match('/^[a-f0-9]{32}$/i', $configValue) === 1) {
+            return $configValue;
+        }
+    }
+
+    return null;
+}
+
 function sendJson(array $payload, int $status = 200): void
 {
     http_response_code($status);
@@ -429,6 +521,9 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     sendJson(["success" => false, "message" => "Method not allowed"], 405);
 }
 
+ensureUserAiKeysTable($pdo);
+ensureAiPriorityCacheTable($pdo);
+
 $data = getRequestJson();
 $title = trim((string)($data["title"] ?? ""));
 $description = trim((string)($data["description"] ?? ""));
@@ -533,11 +628,12 @@ ensureProviderFailureCountSession();
 $cooldownCapSeconds = 900; // 15 minutes max backoff
 
 $sessionUserId = (int)$_SESSION["user_id"];
+$byokEncryptKey = getByokEncryptKey();
 
 // 0) BYOK — user's own key (never breaks shared chain on failure)
 if ($aiResult === null) {
     try {
-        if (defined("BYOK_ENCRYPT_KEY") && BYOK_ENCRYPT_KEY !== "" && BYOK_ENCRYPT_KEY !== "REPLACE_WITH_OUTPUT_OF_openssl_rand_hex_16") {
+        if ($byokEncryptKey !== null) {
             $byokStmt = $pdo->prepare("SELECT provider, model, api_key_encrypted, iv FROM user_ai_keys WHERE user_id = ?");
             $byokStmt->execute([$sessionUserId]);
             $byokRow = $byokStmt->fetch(PDO::FETCH_ASSOC);
@@ -551,7 +647,7 @@ if ($aiResult === null) {
                     $byokKey = openssl_decrypt(
                         (string)$byokRow["api_key_encrypted"],
                         "AES-256-CBC",
-                        BYOK_ENCRYPT_KEY,
+                        $byokEncryptKey,
                         0,
                         $ivBin
                     );
@@ -763,4 +859,3 @@ $payload = [
 ];
 if ($debug) $payload["debug"] = ["attempts" => $attempts];
 sendJson($payload);
-
