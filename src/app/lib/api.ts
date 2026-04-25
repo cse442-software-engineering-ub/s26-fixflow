@@ -1,3 +1,6 @@
+//Added DarkMode Fam//
+import type { UserAiKeyGetResponse } from './user-ai-key-mock';
+
 type ApiError = {
   message: string;
   status?: number;
@@ -76,6 +79,7 @@ export const api = {
       avatar_gradient?: string;
       avatar_image?: string | null;
       role?: 'admin' | 'developer';
+      theme_preference?: 'light' | 'dark';
     }>('api/me.php', {
       method: 'GET',
     }),
@@ -130,6 +134,19 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ currentPassword, newPassword }),
     }),
+
+  /** BYOK — persisted in `user_ai_keys`; see `user-ai-key-mock.ts` for local UI tests only */
+  userAiKeyGet: () =>
+    apiFetch<UserAiKeyGetResponse & { success: boolean }>('api/user-ai-key.php', { method: 'GET' }),
+
+  userAiKeySave: (payload: { provider: string; model: string; api_key: string }) =>
+    apiFetch<{ success: boolean; message?: string }>('api/user-ai-key.php', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  userAiKeyDelete: () =>
+    apiFetch<{ success: boolean; message?: string }>('api/user-ai-key.php', { method: 'DELETE' }),
 
   // Bugs CRUD
   listBugs: (options?: { status?: string; sort?: 'newest' | 'oldest'; assignedTo?: string }) => {
@@ -188,6 +205,7 @@ export const api = {
       provider: string | null;
       fromCache: boolean;
       fallback?: boolean;
+      byok?: boolean;
     }>('api/suggest-priority.php', {
       method: 'POST',
       body: JSON.stringify(payload),
@@ -330,6 +348,12 @@ export const api = {
   listUsersBasic: () =>
     apiFetch<{ success: boolean; users: Array<{ id: number; username: string; email: string }> }>('api/users-options.php', {
       method: 'GET',
+    }),
+
+  themeUpdate: (theme: 'light' | 'dark') =>
+    apiFetch<{ success: boolean; theme_preference: 'light' | 'dark' }>('api/dark-mode-update.php', {
+      method: 'POST',
+      body: JSON.stringify({ theme_preference: theme }),
     }),
 };
 

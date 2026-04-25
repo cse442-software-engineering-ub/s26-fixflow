@@ -1,3 +1,4 @@
+//Added DarkMode Fam//
 import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router';
 import { toast } from 'sonner';
@@ -11,6 +12,7 @@ import { DeleteBugModal } from '../components/DeleteBugModal';
 import { Bug, FixDetails } from '../types';
 import { api } from '../lib/api';
 import { activityLogger } from '../lib/activity';
+
 
 interface DashboardProps {
   currentUser: string;
@@ -33,6 +35,11 @@ export function Dashboard({
   onUserUpdate,
   onSessionRefresh,
 }: DashboardProps) {
+  const getCharacterLimitToastMessage = (msg: string): string =>
+    msg.toLowerCase().includes('characters or fewer')
+      ? 'Character limit exceeded'
+      : msg;
+
   const [bugs, setBugs] = useState<Bug[]>([]);
   const [deletedBugs, setDeletedBugs] = useState<Bug[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -210,8 +217,15 @@ export function Dashboard({
         bugTitle: newBug.title,
         user: currentUser,
       });
-    } catch {
-      toast.error('Failed to save. Please try again.');
+    } catch (err: unknown) {
+      const msg =
+        err &&
+        typeof err === 'object' &&
+        'message' in err &&
+        typeof (err as { message: unknown }).message === 'string'
+          ? (err as { message: string }).message
+          : 'Failed to save. Please try again.';
+      toast.error(getCharacterLimitToastMessage(msg));
     }
   };
 
@@ -279,7 +293,7 @@ export function Dashboard({
         typeof (err as { message: unknown }).message === 'string'
           ? (err as { message: string }).message
           : 'Failed to save. Please try again.';
-      toast.error(msg);
+      toast.error(getCharacterLimitToastMessage(msg));
     }
   };
 
@@ -451,7 +465,7 @@ export function Dashboard({
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-gray-50 dark:bg-[#282d33] dark:text-white">
       <Navbar 
         onAddBug={() => setShowForm(true)} 
         currentUser={currentUser}

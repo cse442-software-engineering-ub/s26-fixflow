@@ -1,3 +1,4 @@
+//Added DarkMode Fam//
 import { useOutletContext, Link } from 'react-router';
 import { Bug } from '../types';
 import { StatsCard } from '../components/StatsCard';
@@ -13,6 +14,7 @@ interface OutletContext {
   onDelete: (id: string) => void;
   onBugClick: (bug: Bug) => void;
 }
+
 
 export function Home() {
   const { bugs, sessionDisplayName, onBugClick } = useOutletContext<OutletContext>();
@@ -64,7 +66,7 @@ export function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 dark:bg-[#282d33]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
@@ -80,8 +82,8 @@ export function Home() {
 
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-5 h-5 text-gray-700" />
-            <h2 className="text-lg font-bold text-gray-900">System bug status:</h2>
+            <TrendingUp className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">System bug status:</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatsCard title="High Priority Bugs" count={stats.high} color="red" />
@@ -95,10 +97,10 @@ export function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white rounded-2xl shadow-md p-4 sm:p-8 border border-gray-200"
+          className="bg-white dark:bg-[#2f353c] rounded-2xl shadow-md p-4 sm:p-8 border border-gray-200 dark:border-[#3e4650]"
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <div className="w-1 h-6 sm:h-8 bg-red-500 rounded-full"></div>
               Top Priority Bugs
             </h2>

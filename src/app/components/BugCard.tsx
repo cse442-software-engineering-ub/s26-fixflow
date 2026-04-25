@@ -11,6 +11,13 @@ interface BugCardProps {
 }
 
 export function BugCard({ bug, onToggleStatus, onEdit, onDelete, onClick }: BugCardProps) {
+  const clampStyle = {
+    display: '-webkit-box',
+    WebkitBoxOrient: 'vertical' as const,
+    overflow: 'hidden',
+  };
+  const hasLongPreviewContent = (bug.code || '').length > 180 || (bug.description || '').length > 260;
+
   const priorityConfig = {
     high: {
       gradient: 'from-red-50 to-pink-50',
@@ -61,7 +68,7 @@ export function BugCard({ bug, onToggleStatus, onEdit, onDelete, onClick }: BugC
       <div className={`absolute top-0 left-0 w-1 h-full ${config.badge}`} />
       
       <div className="flex items-start justify-between gap-4 mb-4 relative z-10 pl-2">
-        <div className="flex items-start gap-3 flex-1">
+        <div className="flex items-start gap-3 flex-1 min-w-0">
           <motion.button
             whileHover={{ scale: 1.2, rotate: 360 }}
             whileTap={{ scale: 0.9 }}
@@ -78,11 +85,11 @@ export function BugCard({ bug, onToggleStatus, onEdit, onDelete, onClick }: BugC
                 <Circle className={`w-6 h-6 ${config.icon}`} />
               )}
           </motion.button>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <h3 className={`font-bold text-lg mb-3 ${
               bug.status === 'fixed' ? 'line-through text-gray-500' : 'text-gray-900'
-            }`}>
-              {bug.title}
+            } break-all`}>
+              <span style={{ ...clampStyle, WebkitLineClamp: 2 }}>{bug.title}</span>
             </h3>
             <div className="flex flex-wrap items-center gap-2 mb-3">
               <span className="px-3 py-1 rounded-md text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
@@ -113,7 +120,7 @@ export function BugCard({ bug, onToggleStatus, onEdit, onDelete, onClick }: BugC
             </div>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 shrink-0">
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
@@ -142,7 +149,10 @@ export function BugCard({ bug, onToggleStatus, onEdit, onDelete, onClick }: BugC
       <div className="space-y-3 relative z-10 pl-2">
         <div className="flex items-start gap-3 text-sm bg-gray-50 rounded-lg p-3">
           <Code className="w-5 h-5 text-slate-600 mt-0.5 flex-shrink-0" />
-          <code className="text-gray-800 font-mono text-sm break-all font-medium">
+          <code
+            className="text-gray-800 font-mono text-sm break-all font-medium"
+            style={{ ...clampStyle, WebkitLineClamp: 5 }}
+          >
             {bug.code || ''}
           </code>
         </div>
@@ -175,9 +185,19 @@ export function BugCard({ bug, onToggleStatus, onEdit, onDelete, onClick }: BugC
           </div>
         )}
 
-        <p className="text-gray-700 text-sm leading-relaxed bg-gray-50 rounded-lg p-3">
-          {bug.description || ''}
-        </p>
+        <div className="relative bg-gray-50 rounded-lg p-3">
+          <p
+            className="text-gray-700 text-sm leading-relaxed break-all"
+            style={{ ...clampStyle, WebkitLineClamp: 6 }}
+          >
+            {bug.description || ''}
+          </p>
+          {hasLongPreviewContent && (
+            <div className="mt-2 text-xs font-medium text-blue-600">
+              Click to read more
+            </div>
+          )}
+        </div>
       </div>
     </motion.div>
   );

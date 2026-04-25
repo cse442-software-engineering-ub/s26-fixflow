@@ -7,6 +7,98 @@ require_once __DIR__ . "/db-connection.php";
 // This endpoint is intentionally resilient:
 // - If AI keys are missing or providers fail, we always return a valid JSON response.
 
+/**
+ * Ensure BYOK storage exists before reading a user's saved provider key.
+ */
+function ensureUserAiKeysTable(PDO $pdo): void
+{
+    $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+    if ($driver === "sqlite") {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS user_ai_keys (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL UNIQUE,
+                provider TEXT NOT NULL,
+                model TEXT NOT NULL,
+                api_key_encrypted TEXT NOT NULL,
+                iv TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+            );
+        ");
+        return;
+    }
+
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS user_ai_keys (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            provider VARCHAR(50) NOT NULL,
+            model VARCHAR(150) NOT NULL,
+            api_key_encrypted TEXT NOT NULL,
+            iv VARCHAR(32) NOT NULL,
+            created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY unique_user (user_id)
+        );
+    ");
+}
+
+/**
+ * Cache writes are best-effort, but the table should exist anywhere this
+ * endpoint is deployed so teammates do not need manual SQL setup.
+ */
+function ensureAiPriorityCacheTable(PDO $pdo): void
+{
+    $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+    if ($driver === "sqlite") {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS ai_priority_cache (
+                cache_key TEXT PRIMARY KEY,
+                priority TEXT NOT NULL,
+                explanation TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+            );
+        ");
+        return;
+    }
+
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS ai_priority_cache (
+            cache_key CHAR(64) PRIMARY KEY,
+            priority VARCHAR(20) NOT NULL,
+            explanation TEXT NOT NULL,
+            created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
+        );
+    ");
+}
+
+/**
+ * BYOK uses one app-level encryption secret to decrypt the saved provider key
+ * before sending the bug triage request to the user's chosen provider.
+ */
+function getByokEncryptKey(): ?string
+{
+    $envValue = getenv("BYOK_ENCRYPT_KEY");
+    if (is_string($envValue)) {
+        $envValue = trim($envValue);
+        if (preg_match('/^[a-f0-9]{32}$/i', $envValue) === 1) {
+            return $envValue;
+        }
+    }
+
+    if (defined("BYOK_ENCRYPT_KEY")) {
+        $configValue = trim((string)BYOK_ENCRYPT_KEY);
+        if (preg_match('/^[a-f0-9]{32}$/i', $configValue) === 1) {
+            return $configValue;
+        }
+    }
+
+    return null;
+}
+
 function sendJson(array $payload, int $status = 200): void
 {
     http_response_code($status);
@@ -224,10 +316,68 @@ function callOpenAICompatible(string $baseUrl, string $apiKey, string $model, st
     return $validated;
 }
 
-function callGemini(string $apiKey, string $prompt, int $timeoutMs, ?string &$errorOut = null): ?array
+function callClaude(string $apiKey, string $model, string $prompt, int $timeoutMs, ?string &$errorOut = null): ?array
 {
-    // Gemini: generateContent
-    $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . urlencode($apiKey);
+    $url = "https://api.anthropic.com/v1/messages";
+    $payload = [
+        "model" => $model,
+        "max_tokens" => 300,
+        "temperature" => 0.2,
+        "messages" => [["role" => "user", "content" => $prompt]],
+    ];
+    $headers = [
+        "Content-Type: application/json",
+        "x-api-key: " . $apiKey,
+        "anthropic-version: 2023-06-01",
+    ];
+    $res = curlPostJson($url, $headers, $payload, $timeoutMs);
+    if (!$res["ok"]) {
+        $errorOut = isset($res["errNo"]) && (int)$res["errNo"] !== 0
+            ? ("curl_error " . (int)$res["errNo"] . ": " . (string)($res["errMsg"] ?? ""))
+            : ("request_failed http_status " . (int)($res["status"] ?? 0));
+        return null;
+    }
+    if ($res["status"] < 200 || $res["status"] >= 300) {
+        $errorOut = "http_status " . (int)$res["status"];
+        return null;
+    }
+    $decoded = json_decode((string)$res["body"], true);
+    if (!is_array($decoded)) {
+        $errorOut = "invalid_json_response";
+        return null;
+    }
+    $content = null;
+    if (isset($decoded["content"]) && is_array($decoded["content"])) {
+        foreach ($decoded["content"] as $block) {
+            if (is_array($block) && ($block["type"] ?? "") === "text" && isset($block["text"]) && is_string($block["text"])) {
+                $content = $block["text"];
+                break;
+            }
+        }
+    }
+    if (!is_string($content)) {
+        $content = $decoded["content"][0]["text"] ?? null;
+    }
+    if (!is_string($content)) {
+        $errorOut = "missing_text";
+        return null;
+    }
+    $json = extractJsonFromText($content);
+    if (!is_array($json)) {
+        $errorOut = "model_output_not_json";
+        return null;
+    }
+    $validated = validateAndNormalizeResult($json);
+    if ($validated === null) {
+        $errorOut = "invalid_format";
+        return null;
+    }
+    return $validated;
+}
+
+function callGemini(string $apiKey, string $model, string $prompt, int $timeoutMs, ?string &$errorOut = null): ?array
+{
+    $url = "https://generativelanguage.googleapis.com/v1beta/models/" . rawurlencode($model) . ":generateContent?key=" . urlencode($apiKey);
     $payload = [
         "contents" => [
             ["parts" => [["text" => $prompt]]],
@@ -288,6 +438,7 @@ function ensureProviderCooldownSession(): void
     }
 
     $defaults = [
+        "cerebras" => 0,
         "nvidia" => 0,
         "openrouter" => 0,
         "gemini" => 0,
@@ -307,6 +458,7 @@ function ensureProviderFailureCountSession(): void
     }
 
     $defaults = [
+        "cerebras" => 0,
         "nvidia" => 0,
         "openrouter" => 0,
         "gemini" => 0,
@@ -369,6 +521,9 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     sendJson(["success" => false, "message" => "Method not allowed"], 405);
 }
 
+ensureUserAiKeysTable($pdo);
+ensureAiPriorityCacheTable($pdo);
+
 $data = getRequestJson();
 $title = trim((string)($data["title"] ?? ""));
 $description = trim((string)($data["description"] ?? ""));
@@ -383,6 +538,7 @@ if ($title === "" || $description === "") {
         "provider" => null,
         "fromCache" => false,
         "fallback" => true,
+        "byok" => false,
     ]);
 }
 
@@ -397,6 +553,7 @@ if ($count > $maxPerMinute) {
         "provider" => null,
         "fromCache" => false,
         "fallback" => true,
+        "byok" => false,
     ], 200);
 }
 
@@ -423,6 +580,7 @@ try {
                 "provider" => null,
                 "fromCache" => true,
                 "fallback" => false,
+                "byok" => false,
             ]);
         }
     }
@@ -459,6 +617,7 @@ if (file_exists($keysFile)) {
 $geminiKey = defined("GEMINI_KEY") ? trim((string)GEMINI_KEY) : "";
 $openRouterKey = defined("OPENROUTER_KEY") ? trim((string)OPENROUTER_KEY) : "";
 $nvidiaKey = defined("NVIDIA_KEY") ? trim((string)NVIDIA_KEY) : "";
+$cerebrasKey = defined("CEREBRAS_KEY") ? trim((string)CEREBRAS_KEY) : "";
 
 $aiResult = null;
 $provider = null;
@@ -468,12 +627,108 @@ ensureProviderCooldownSession();
 ensureProviderFailureCountSession();
 $cooldownCapSeconds = 900; // 15 minutes max backoff
 
-// Provider order:
-// 1) NVIDIA
-// 2) OpenRouter
-// 3) Gemini
+$sessionUserId = (int)$_SESSION["user_id"];
+$byokEncryptKey = getByokEncryptKey();
 
-// 1) NVIDIA
+// 0) BYOK — user's own key (never breaks shared chain on failure)
+if ($aiResult === null) {
+    try {
+        if ($byokEncryptKey !== null) {
+            $byokStmt = $pdo->prepare("SELECT provider, model, api_key_encrypted, iv FROM user_ai_keys WHERE user_id = ?");
+            $byokStmt->execute([$sessionUserId]);
+            $byokRow = $byokStmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($byokRow && is_array($byokRow)) {
+                $byokProvider = (string)$byokRow["provider"];
+                $byokModel = (string)$byokRow["model"];
+                $ivBin = @hex2bin((string)$byokRow["iv"]);
+                $byokKey = false;
+                if ($ivBin !== false && strlen($ivBin) === 16) {
+                    $byokKey = openssl_decrypt(
+                        (string)$byokRow["api_key_encrypted"],
+                        "AES-256-CBC",
+                        $byokEncryptKey,
+                        0,
+                        $ivBin
+                    );
+                }
+
+                if ($byokKey !== false && is_string($byokKey) && trim($byokKey) !== "") {
+                    $byokErr = "";
+                    $byokBaseUrls = [
+                        "OpenAI" => "https://api.openai.com/v1",
+                        "OpenRouter" => "https://openrouter.ai/api/v1",
+                        "NVIDIA" => "https://integrate.api.nvidia.com/v1",
+                        "Kimi" => "https://api.moonshot.cn/v1",
+                        "MiniMax" => "https://api.minimax.chat/v1",
+                        "Qwen" => "https://dashscope.aliyuncs.com/compatible-mode/v1",
+                        "DeepSeek" => "https://api.deepseek.com/v1",
+                        "Mistral" => "https://api.mistral.ai/v1",
+                    ];
+
+                    if ($byokProvider === "Google") {
+                        $aiResult = callGemini(trim($byokKey), $byokModel, $prompt, $timeoutMs, $byokErr);
+                    } elseif ($byokProvider === "Claude") {
+                        $aiResult = callClaude(trim($byokKey), $byokModel, $prompt, $timeoutMs, $byokErr);
+                    } elseif (isset($byokBaseUrls[$byokProvider])) {
+                        $aiResult = callOpenAICompatible($byokBaseUrls[$byokProvider], trim($byokKey), $byokModel, $prompt, $timeoutMs, $byokErr);
+                    }
+
+                    if ($aiResult !== null) {
+                        $provider = "byok:" . strtolower($byokProvider);
+                        if ($debug) {
+                            $attempts[] = ["provider" => "byok:" . $byokProvider, "ok" => true, "model" => $byokModel];
+                        }
+                    } else {
+                        if ($debug) {
+                            $attempts[] = ["provider" => "byok:" . $byokProvider, "ok" => false, "error" => $byokErr, "model" => $byokModel];
+                        }
+                    }
+                }
+            }
+        }
+    } catch (Throwable $e) {
+        if ($debug) {
+            $attempts[] = ["provider" => "byok", "ok" => false, "error" => "exception"];
+        }
+    }
+}
+
+// Provider order:
+// 1) Cerebras (OpenAI-compatible)
+// 2) NVIDIA
+// 3) OpenRouter
+// 4) Gemini
+
+// 1) Cerebras
+if ($aiResult === null) {
+    if (isProviderCoolingDown("cerebras")) {
+        if ($debug) $attempts[] = ["provider" => "cerebras", "ok" => false, "skipped" => true, "error" => "cooldown_active"];
+    } elseif ($cerebrasKey === "") {
+        $cd = setProviderCooldownWithBackoff("cerebras", 10, $cooldownCapSeconds);
+        if ($debug) $attempts[] = ["provider" => "cerebras", "ok" => false, "error" => "missing_key", "cooldownSeconds" => $cd];
+    } else {
+        $provider = "cerebras";
+        $err = "";
+        $aiResult = callOpenAICompatible(
+            "https://api.cerebras.ai/v1",
+            $cerebrasKey,
+            "llama3.1-8b",
+            $prompt,
+            $timeoutMs,
+            $err
+        );
+        if ($aiResult === null) {
+            $cd = setProviderCooldownWithBackoff("cerebras", 10, $cooldownCapSeconds);
+            if ($debug) $attempts[] = ["provider" => "cerebras", "ok" => false, "error" => ($err ?: "unknown"), "cooldownSeconds" => $cd];
+        } else {
+            resetProviderFailureCount("cerebras");
+            if ($debug) $attempts[] = ["provider" => "cerebras", "ok" => true, "error" => null];
+        }
+    }
+}
+
+// 2) NVIDIA
 if ($aiResult === null) {
     if (isProviderCoolingDown("nvidia")) {
         if ($debug) $attempts[] = ["provider" => "nvidia", "ok" => false, "skipped" => true, "error" => "cooldown_active"];
@@ -502,7 +757,7 @@ if ($aiResult === null) {
     }
 }
 
-// 2) OpenRouter
+// 3) OpenRouter
 if ($aiResult === null) {
     if (isProviderCoolingDown("openrouter")) {
         if ($debug) $attempts[] = ["provider" => "openrouter", "ok" => false, "skipped" => true, "error" => "cooldown_active"];
@@ -515,7 +770,7 @@ if ($aiResult === null) {
         $aiResult = callOpenAICompatible(
             "https://openrouter.ai/api/v1",
             $openRouterKey,
-            "nvidia/nemotron-3-super-120b-a12b:free",
+            "openai/gpt-oss-120b:free",
             $prompt,
             $timeoutMs,
             $err
@@ -530,7 +785,7 @@ if ($aiResult === null) {
     }
 }
 
-// 3) Gemini
+// 4) Gemini
 if ($aiResult === null) {
     if (isProviderCoolingDown("gemini")) {
         if ($debug) $attempts[] = ["provider" => "gemini", "ok" => false, "skipped" => true, "error" => "cooldown_active"];
@@ -540,7 +795,7 @@ if ($aiResult === null) {
     } else {
         $provider = "gemini";
         $err = "";
-        $aiResult = callGemini($geminiKey, $prompt, $timeoutMs, $err);
+        $aiResult = callGemini($geminiKey, "gemini-2.5-flash", $prompt, $timeoutMs, $err);
         if ($aiResult === null) {
             $cd = setProviderCooldownWithBackoff("gemini", 60, $cooldownCapSeconds);
             if ($debug) $attempts[] = ["provider" => "gemini", "ok" => false, "error" => ($err ?: "unknown"), "cooldownSeconds" => $cd];
@@ -559,6 +814,7 @@ if ($aiResult === null) {
         "provider" => null,
         "fromCache" => false,
         "fallback" => true,
+        "byok" => false,
     ];
     if ($debug) $payload["debug"] = ["attempts" => $attempts];
     sendJson($payload);
@@ -591,6 +847,7 @@ try {
     // Cache failure should not affect the response.
 }
 
+$byokFlag = is_string($provider) && strncmp($provider, "byok:", 5) === 0;
 $payload = [
     "success" => true,
     "priority" => $aiResult["priority"],
@@ -598,7 +855,7 @@ $payload = [
     "provider" => $provider,
     "fromCache" => false,
     "fallback" => false,
+    "byok" => $byokFlag,
 ];
 if ($debug) $payload["debug"] = ["attempts" => $attempts];
 sendJson($payload);
-
